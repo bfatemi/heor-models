@@ -15,6 +15,7 @@ Imports: data.table,
     rlang,
     stats,
     beanplot,
-    pryr
+    pryr,
+    MatchIt
 Remotes:
     hadley/rlang

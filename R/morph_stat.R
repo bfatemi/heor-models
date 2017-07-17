@@ -19,15 +19,21 @@
 #'
 #' @examples
 #' # EXAMPLES PENDING
-morph_stat <- function(DAT, GRP_VARS, TREATMENT, OUTCOME, min_n = 25){
-   # define list of functions to apply to stratified groups
+morph_stat <- function(DAT = sDT, 
+                       GRP_VARS = c("PRIMARY_PROCEDURE", 
+                                    "BENIGN_MALIGNANT", 
+                                    "PATIENT_TYPE"), 
+                       TREATMENT = "MODALITY", 
+                       OUTCOME, 
+                       min_n = 10){
+   
+  # define list of functions to apply to stratified groups
    FUNS   <- list(
       numObs = length,
       mean   = mean,
       median = median,
       sd     = sd,
-      var    = var,
-      stderr = function(x) sd(x) / sqrt(length(x))
+      var    = var
    )
 
    # validate that variables provided exist in the dataset
@@ -36,18 +42,45 @@ morph_stat <- function(DAT, GRP_VARS, TREATMENT, OUTCOME, min_n = 25){
       stop("Columns missing in data: ", stringr::str_c(chk, collapse = ", "))
 
    # id each stratified group of patients (not by modality)
-   DAT[, COHORT_ID := .GRP, by = GRP_VARS]
+   DAT[, COHORT_ID := .GRP, by = GRP_VARS]  
 
-   # split each cohort by modality (ensuring min num of patients) and run stats
+   # # split each cohort by modality (ensuring min num of patients) and run stats
    sdata <- DAT[,
                 c( fapply(FUNS, get(OUTCOME), min.obs = 10) ),
                 by = c(TREATMENT, "COHORT_ID", GRP_VARS)
                 ]
-
-   setkeyv(statDT, c("COHORT_ID", TREATMENT))
+   # 
+   # DAT[, fapply(FUNS, get(OUTCOME), min.obs = 10), by = c("COHORT_ID", TREATMENT, GRP_VARS)]
+   
+   m_ctrl <- DAT[ modality == "Control" ]
+   m_rob  <- DAT[ modality == "Robotic" ]
+   
+   x <- m_ctrl$LOS_HOURS
+   y <- m_rob$LOS_HOURS
+   
+   res <- t.test(x,y)
+   
+   res.est <- as.list(res$estimate)
+   
+   names(res.est) <- c(
+     paste0("ave_", ovar, "_ctrl"), 
+     paste0("ave_", ovar, "_rob")
+   )
+   
+   DAT[, .(ave = mean(get(ovar))), c(TREATMENT, GRP_VARS)]
+   res <- data.table(,
+              as.data.table(res.est),
+              p_value = round(res$p.value, 8),
+              t_stat = res$statistic,
+              method = res$method,
+              null_h = "diff of means is 0")
+   
+   
+              
+   setkeyv(sdata, c("COHORT_ID", TREATMENT))
 
    # Keep cohorts where both treatments have valid number of patients
-   patDT  <- dcast(data = statDT[, numObs, .(COHORT_ID, MODALITY)],
+   patDT  <- dcast(data = sdata[, numObs, c("COHORT_ID", TREATMENT)],
                    formula = xFormula("COHORT_ID", TREATMENT),
                    value.var = "numObs",
                    fill = NA)
@@ -55,7 +88,7 @@ morph_stat <- function(DAT, GRP_VARS, TREATMENT, OUTCOME, min_n = 25){
 
    keepInd <- Reduce(function(x, y) !(is.na(x) | is.na(y)), patDT[, !"COHORT_ID"])
 
-   resDT <- statDT[COHORT_ID %in% patDT[keepInd, COHORT_ID]]
+   resDT <- sdata[COHORT_ID %in% patDT[keepInd, COHORT_ID]]
 
    ##
    ## Calculate test for difference of means across modalities
@@ -73,10 +106,8 @@ morph_stat <- function(DAT, GRP_VARS, TREATMENT, OUTCOME, min_n = 25){
    rAve <- mlist$Robotic$mean
 
    pooled_est <- ( (oN - 1)*oVar + (rN - 1)*rVar ) / ( (oN - 1) + (rN - 1) )
-
-   t_value <- (oAve - rAve) / ( sqrt(pooled_est) * sqrt( (1/oN) + (1/rN) ))
-
-   pvals <- round(2*pt(t_value, (oN - 1) + (rN - 1), lower=FALSE), 4)
+   t_value    <- (oAve - rAve) / ( sqrt(pooled_est) * sqrt( (1/oN) + (1/rN) ))
+   pvals      <- round(2*pt(t_value, (oN - 1) + (rN - 1), lower=FALSE), 4)
 
    ##
    ## add the pvals to each table, combine, then return
