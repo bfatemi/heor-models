@@ -1,0 +1,20 @@
+Package: isds
+Title: ISI Data Science Tools
+Version: 0.0.0.9000
+Authors@R: person("Bobby", "Fatemi", email = "bfatemi07@gmail.com", role = c("aut", "cre"))
+Description: Tools for Internal Use at Intuitive Surgical
+Depends: R (>= 3.3.3)
+License: file LICENSE
+Encoding: UTF-8
+LazyData: true
+Suggests: covr,
+    testthat
+RoxygenNote: 6.0.1
+Imports: data.table,
+    stringr,
+    rlang,
+    stats,
+    beanplot,
+    pryr
+Remotes:
+    hadley/rlang
