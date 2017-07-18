@@ -3,8 +3,12 @@
 # SUBSET DATA FOR TWO MODALITIES AND DESIRED HOSP -------------------------
 
 hosp_data <- getHospData()
-DT <- hosp_data[MODALITY %in% c("Robotic", "Open") & HOSPITAL_ID == 10112 & BMI > 0]
 
+DT <- hosp_data[
+  MODALITY %in% c("Robotic", "Open")
+  & HOSPITAL_ID == 10112
+  & BMI > 0
+  ]
 
 
 # DEFINE INPUTS THAT WILL STRATIFY DATA FOR PSM THEN RUN ------------------
@@ -14,8 +18,12 @@ strat    <- c("PRIMARY_PROCEDURE", "BENIGN_MALIGNANT", "PATIENT_TYPE")
 covar    <- c("BMI", "PATIENT_AGE", "CHARLSON_SCORE", "PATIENT_GENDER")
 outcomes <- c("LOS_HOURS", "OR_TIME_MINS")
 
-statDT <- getStatPSM(DT, treat, strat, covar, outcomes)
-
+statDT <- getStatPSM(DT = DT, 
+                     treat_var = treat, 
+                     split_vars = strat, 
+                     covariates = covar, 
+                     outcome_var = outcomes)
+statDT
 
 # fwrite(statDT, "../../Dropbox/WORK/ISI/Projects/PSM_ALGO/data/h10112.csv")
 # RUN PSM ANALYSIS --------------------------------------------------------

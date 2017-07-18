@@ -33,6 +33,10 @@ getHospData <- function(SELECT = "*", WHERE = NULL){
     & get("PATIENT_TYPE") %in% c("I", "O")
     ]
   
+  if(nrow(rDT) == 0){
+    stop("No data available")
+  }
+  
   # MAKE FRIENDLY PAT ID
   rDT[, c("PID") := .GRP, "PATIENT_ID_DEIDENTIFIED"]
   

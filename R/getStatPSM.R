@@ -20,6 +20,9 @@ getStatPSM <- function(DT = NULL,
                        covariates = NULL, 
                        outcome_var = NULL){
   
+  if(!"Robotic" %in% DT[, unique(get(treat_var))])
+    stop("No Robotic modality observations detected in the treatment column", call. = FALSE)
+  
   # INCLUDE ADDITIONAL VARS FROM DT:
   inc_vars <- c("HOSPITAL_ID", "PID")
   
@@ -35,19 +38,21 @@ getStatPSM <- function(DT = NULL,
   
   # TRIM DATA AND MAKE CID A NEW FACTOR COLUMN
   psmDT <- DT[, keepCols, with=FALSE]
-  psmDT[, CID := as.factor(.GRP), c(split_vars)]
+  psmDT[, CID := .GRP, c(split_vars)]
   setkeyv(psmDT, "CID")
   
   
   # EACH COHORT NEEDS TO HAVE TEN PATIENTS OF EACH MODALITY. RETURN NULL IF NOT
+  tmp <- psmDT[, .N < 10, c("CID", treat_var)][V1 == FALSE, !"V1"]
+
   wcount  <- dcast(
-    data = psmDT[, .N < 10, c("CID", treat_var)][V1 == FALSE, !"V1"],
-    formula = rlang::new_formula("CID", treat_var),
+    data = tmp,
+    formula = call("~", as.symbol("CID"), as.name(treat_var)),
     value.var = treat_var,
     fun.aggregate = length
   )
   
-  keepCID <- as.numeric( wcount[which( rowSums(wcount[, !"CID"] ) == 2 ), CID] )
+  keepCID <- as.numeric( wcount[which( rowSums(wcount[, !"CID", with = FALSE] ) == 2 ), CID] )
   tmpll   <- split( psmDT[ CID %in% keepCID ], keepCID )
   mList   <- tmpll[ sapply(tmpll, nrow) > 0 ]
   
@@ -55,6 +60,7 @@ getStatPSM <- function(DT = NULL,
   RESULT <- rbindlist(lapply(mList, function(mDT){
     
     mDT[, IS_ROBOTIC := MODALITY == "Robotic"]
+    mDT[, CID := as.factor(CID)]
     
     # if covariates don't vary, need to remove them. If not left, PSM shouldn't be applied
     valid_covars <- covariates[sapply(covariates, function(i) length(unique(mDT[, get(i)]))) > 1]
