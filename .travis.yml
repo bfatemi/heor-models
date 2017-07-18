@@ -1,13 +1,21 @@
 # R for travis: see documentation at https://docs.travis-ci.com/user/languages/r
 
 language: R
-sudo: required
+sudo: false
 cache: packages
 
 
 after_success:
   - Rscript -e 'covr::codecov()'
   
-#A list of packages to install directly from GitHub, using devtools::install_github from the devtools package. The package names here should be of the form user/repo
-r_github_packages:
-  - bfatemi/isdb
+addons:
+  apt:
+    sources:
+    - r-packages-precise
+    packages:
+    - r-base-dev
+    - libcurl4-openssl-dev 
+    - libxml2-dev
+    - unixodbc-dev
+    - r-recommended
+    - pandoc
