@@ -1,28 +1,28 @@
-data_check <- function(cols, DT){
-   data_env <- rlang::as_env(DT)
-   cols_missing <- cols[which(!rlang::env_has(data_env, cols))]
-   if( length(cols_missing) > 0 ){
-      return( cols_missing )
-   }
-   return( character(0) )
+data_check <- function(DT, cols){
+  data_env <- rlang::as_env(DT)
+  cols_missing <- cols[which(!rlang::env_has(data_env, cols))]
+  if( length(cols_missing) > 0 ){
+    stop( "Missing columns: ", cols_missing )
+  }
+  invisible(TRUE)
 }
 
 fapply <- function(funs, vector, min.obs = 25, na.rm = TRUE, verbose = FALSE){
-
-   na_index <- which( is.na(vector) )
-   countNA  <- length(na_index)
-
-   # remove if nas exist and flag is true
-   if( countNA > 0 & na.rm)
-      vector <- vector[ -na_index ]
-
-   # if num obs below threshold, return null
-   if( length(vector) < min.obs ){
-      if(verbose)
-         warning( "Group had fewer observations than min threshold ", call. = FALSE)
-      return(NULL)
-   }
-   return(lapply(funs, do.call, list(vector)))
+  
+  na_index <- which( is.na(vector) )
+  countNA  <- length(na_index)
+  
+  # remove if nas exist and flag is true
+  if( countNA > 0 & na.rm)
+    vector <- vector[ -na_index ]
+  
+  # if num obs below threshold, return null
+  if( length(vector) < min.obs ){
+    if(verbose)
+      warning( "Group had fewer observations than min threshold ", call. = FALSE)
+    return(NULL)
+  }
+  return(lapply(funs, do.call, list(vector)))
 }
 
 id_outliers <- function(x = NULL, method = c("quantile", "prob"), p = .05){

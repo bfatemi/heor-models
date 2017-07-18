@@ -4,24 +4,23 @@
 \alias{getStatPSM}
 \title{Test Difference of Means with Balancing}
 \usage{
-getStatPSM(DT, treatment, split_var, covars, outcome)
+getStatPSM(DT = NULL, treat_var = NULL, split_vars = NULL,
+  covariates = NULL, outcome_var = NULL)
 }
 \arguments{
-\item{DT}{Data set that meets IS specifications}
+\item{DT}{[ARGUMENT DEFINITION NEEDED]}
 
-\item{treatment}{Name of the column that represents assignment of treatment or control group}
+\item{treat_var}{[ARGUMENT DEFINITION NEEDED]}
 
-\item{split_var}{Variables use to stratify observations into groups}
+\item{split_vars}{[ARGUMENT DEFINITION NEEDED]}
 
-\item{covars}{A character vector naming the columns that represent the covariates}
+\item{covariates}{[ARGUMENT DEFINITION NEEDED]}
 
-\item{outcome}{The name of the column that represents the outcome variable}
+\item{outcome_var}{[ARGUMENT DEFINITION NEEDED]}
 }
 \value{
-A data.table of statistics
+[DESCRIPTION OF OUTPUT NEEDED]
 }
 \description{
-Utilizes PSM to balance the groups. Model specified with the \code{treatment}, \code{covars},
-and \code{outcome} arguments. The \code{split_var} argument is used for stratifying the data
-prior to PSM matching.
+[DESCRIPTION OF FUNCTION NEEDED]
 }
