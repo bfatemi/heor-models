@@ -1,19 +1,18 @@
 #' Test Difference of Means with Balancing
 #' 
-#' Utilizes PSM to balance the groups. Model specified with the \code{treatment}, \code{covars},
-#' and \code{outcome} arguments. The \code{split_var} argument is used for stratifying the data
-#' prior to PSM matching.
+#' [DESCRIPTION OF FUNCTION NEEDED]
 #'
-#' @param DT Data set that meets IS specifications
-#' @param treatment Name of the column that represents assignment of treatment or control group
-#' @param split_var Variables use to stratify observations into groups
-#' @param covars A character vector naming the columns that represent the covariates
-#' @param outcome The name of the column that represents the outcome variable
+#' @param DT [ARGUMENT DEFINITION NEEDED]
+#' @param treatment [ARGUMENT DEFINITION NEEDED]
+#' @param split_var [ARGUMENT DEFINITION NEEDED]
+#' @param covars [ARGUMENT DEFINITION NEEDED]
+#' @param outcome [ARGUMENT DEFINITION NEEDED]
 #'
-#' @return A data.table of statistics
+#' @return [DESCRIPTION OF OUTPUT NEEDED]
 #' 
 #' @import stats
 #' @import data.table
+#' 
 #' @export
 getStatPSM <- function(DT, treatment, split_var, covars, outcome){
   
