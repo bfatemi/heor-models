@@ -26,7 +26,6 @@ getPatientData <- function(SELECT = "*", WHERE = NULL){
 
   # ADD C SCORE AS FACTOR, MAKE A BOOLEAN FOR ROBOTIC MODALITY
   resDT[, CHARLSON_SCORE := as.factor(CHARLSON_SCORE)]
-  # resDT[, IS_ROBOTIC := (MODALITY == "Robotic")]
   return(resDT[])
 }
 
@@ -35,135 +34,37 @@ getPatientData <- function(SELECT = "*", WHERE = NULL){
 
 rawDT <- getPatientData()
 
-DT <- rawDT[MODALITY %in% c("Robotic", "Open") & HOSPITAL_ID == 10112]
+DT <- rawDT[MODALITY %in% c("Robotic", "Open") & HOSPITAL_ID == 10112][BMI > 0]
 
 
 
-# DEFINE INPUTS THAT WILL STRATIFY DATA FOR PSM ---------------------------
+# DEFINE INPUTS THAT WILL STRATIFY DATA FOR PSM THEN RUN ------------------
+
+treat    <- c("MODALITY")
+
+strat    <- c("PRIMARY_PROCEDURE", 
+              "BENIGN_MALIGNANT", 
+              "PATIENT_TYPE")
+
+covar    <- c("BMI",
+              "PATIENT_AGE",
+              "CHARLSON_SCORE",
+              "PATIENT_GENDER")
+
+outcomes <- c("LOS_HOURS", 
+              "OR_TIME_MINS")
 
 
-treatment <- c("MODALITY")
-split_var <- c("PRIMARY_PROCEDURE", "BENIGN_MALIGNANT", "PATIENT_TYPE")
-
-covars    <- c("BMI",
-               "PATIENT_AGE",
-               "CHARLSON_SCORE",
-               "PATIENT_GENDER")
-
-outcome   <- c("LOS_HOURS", "OR_TIME_MINS")[[1]]
+statDT <- getStatPSM(DT, treat, strat, covar, outcomes)
 
 
-
-
+# fwrite(statDT, "../../Dropbox/WORK/ISI/Projects/PSM_ALGO/data/h10112.csv")
 # RUN PSM ANALYSIS --------------------------------------------------------
 
 
-getPropScore <- function(DT, treatment, split_var, covars, outcome){
+
   
-  
-  # CONSTRUCT MODEL DATA AND FORMULA, THEN GET MODEL AND CALC PROPENSITY SCORES
-  keepCols <- c("HOSPITAL_ID", "PID", outcome, split_var, treatment, covars)
-  psmDT <- DT[BMI > 0, keepCols, with=FALSE]
-  psmDT[, CID := .GRP, c(split_var)]
-  psmDT[, CID := as.factor(CID)]
-  
-  setkeyv(psmDT, "CID")
-  tmp <- dcast(psmDT[, .N < 10, c("CID", treatment)][V1 == FALSE, !"V1"], 
-               CID ~ MODALITY, 
-               value.var = "MODALITY",
-               fun.aggregate = length)
-  cDT <- psmDT[CID %in% as.numeric(tmp[which(rowSums(tmp[, !"CID"]) == 2), CID])]
-  
-  tmp   <- split(cDT, cDT$CID)
-  mList <- tmp[sapply(tmp, nrow) > 0]
-  
-  
-  RESULT <- rbindlist(
-    lapply(mList, function(mDT){
-      mDT[, IS_ROBOTIC := MODALITY == "Robotic"]
-      
-      # if covariates don't vary, need to remove them. If not left, PSM shouldn't be applied
-      valid_covars <- covars[sapply(covars, function(i) length(unique(mDT[, get(i)]))) > 1]
-      if(length(valid_covars) == 0)
-        return(NULL)
-      
-      ## GET MODEL EQUATION FOR EACH RUN
-      env <- rlang::caller_env()
-      
-      f <- rlang::new_formula(
-        rhs = lazyeval::as_call(stringr::str_c(stringr::str_c(valid_covars, collapse = " + "))),
-        lhs = as.name("IS_ROBOTIC"),
-        env = env
-      )
-      
-      psmll <- tryCatch({
-        psm.ml    <- matchit(formula = f, mDT, method = "nearest", ratio = 1)
-        
-        index_rob <- as.numeric(row.names(psm.ml$match.matrix))
-        index_ctr <- as.numeric(psm.ml$match.matrix[, 1])
-        
-        list(
-          r = mDT[ index_rob ],
-          c = mDT[ index_ctr ]
-        )
-        
-      }, warning = function(c){
-        
-        if(stringr::str_detect(c$message, "Fewer control than treated units")){
-          
-          
-          mDT[, IS_CONTROL := !IS_ROBOTIC]
-          
-          f <- rlang::new_formula(
-            rhs = lazyeval::as_call(stringr::str_c(stringr::str_c(valid_covars, collapse = " + "))),
-            lhs = as.name("IS_CONTROL"),
-            env = env
-          )
-          psm.ml    <- matchit(formula = f, mDT, method = "nearest", ratio = 1)
-          
-          index_rob <- as.numeric(psm.ml$match.matrix[, 1])
-          index_ctr <- as.numeric(row.names(psm.ml$match.matrix))
-          
-          list(
-            r = mDT[ index_rob ],
-            c = mDT[ index_ctr ]
-          )
-          
-        } 
-      }, error = function(c){
-        if(stringr::str_detect(c$message, "No units were matched"))
-          return(NULL)
-      })
-      
-      if( is.null(psmll) )
-        return(NULL)
-      
-      
-      # define list of functions to apply to stratified groups
-      FUNS   <- list(
-        PSM_COUNT = length,
-        MEAN      = mean,
-        MEDIAN    = median,
-        STD       = sd,
-        VAR       = var
-      )
-      
-      names(FUNS)[-1] <- paste0(outcome, "_", names(FUNS)[-1])
-      sdata <- rbindlist(psmll)[ , fapply(funs = FUNS, 
-                                          vector = get(outcome), 
-                                          min.obs = 10), 
-                                 by = c(TREATMENT, "CID", "HOSPITAL_ID", GRP_VARS)]
-      
-      p_val <- data.table(
-        round(t.test(psmll$r[, get(outcome)], psmll$c[, get(outcome)])$p.value, 8)
-      )
-      setnames(p_val, paste0(outcome, "_PVALUE"))
-      return(cbind(sdata, p_val))
-    })
-  )
-}
-  
-  
+getStats(DT, "MODALITY", c("PRIMARY_PROCEDURE", "PATIENT_TYPE", "BENIGN_MALIGNANT"), )
   
   # morph_stat(DAT = sDT, 
   #            GRP_VARS = "PRIMARY_PROCEDURE", 

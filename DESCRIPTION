@@ -2,7 +2,7 @@ Package: isds
 Title: ISI Data Science Tools
 Version: 0.0.0.9000
 Authors@R: person("Bobby", "Fatemi", email = "bfatemi07@gmail.com", role = c("aut", "cre"))
-Description: Tools for Internal Use at Intuitive Surgical
+Description: Tools for Internal Use at Intuitive Surgical Inc.
 Depends: R (>= 3.3.3)
 License: file LICENSE
 Encoding: UTF-8
@@ -16,6 +16,9 @@ Imports: data.table,
     stats,
     beanplot,
     pryr,
-    MatchIt
+    MatchIt,
+    isdb,
+    ggplot2,
+    lazyeval
 Remotes:
     hadley/rlang

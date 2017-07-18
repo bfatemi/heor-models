@@ -4,16 +4,17 @@
 \alias{morph_stat}
 \title{Patient Cohort Analysis}
 \usage{
-morph_stat(DAT, GRP_VARS, TREATMENT, OUTCOME, min_n = 25)
+morph_stat(DAT = NULL, GRP_VARS = c("PRIMARY_PROCEDURE", "BENIGN_MALIGNANT",
+  "PATIENT_TYPE"), TREATMENT = "MODALITY", OUTCOME, min_n = 10)
 }
 \arguments{
-\item{DAT}{ISI Data}
+\item{DAT}{data.table}
 
 \item{GRP_VARS}{Variables use to stratify observations into groups}
 
 \item{TREATMENT}{Name of the column that represents assignment of treatment or control group}
 
-\item{OUTCOME}{The name of the column that represents the outcome to analysis across groups}
+\item{OUTCOME}{The name of the column that represents the outcome}
 
 \item{min_n}{The minimum number of patients required to have a valid group (default = 25)}
 }
