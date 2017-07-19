@@ -20,6 +20,7 @@ getDataQTI <- function(SELECT = "*", WHERE = NULL){
     & get("PATIENT_TYPE") %in% c("I", "O")
     ]
   
+  
   if(nrow(DT) == 0){
     stop("No data available")
   }
