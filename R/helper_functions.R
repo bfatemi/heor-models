@@ -2,7 +2,7 @@ data_check <- function(DT, cols){
   data_env <- rlang::as_env(DT)
   cols_missing <- cols[which(!rlang::env_has(data_env, cols))]
   if( length(cols_missing) > 0 ){
-    stop( "Missing columns: ", cols_missing )
+    stop( "Missing columns: ", cols_missing, call. = FALSE)
   }
   invisible(TRUE)
 }

@@ -14,14 +14,10 @@ Imports: data.table,
     stringr,
     rlang,
     stats,
-    beanplot,
     pryr,
     MatchIt,
-    isdb,
-    ggplot2,
     lazyeval,
     secret,
     RODBC
 Remotes:
-    hadley/rlang,
-    bfatemi/isdb
+    hadley/rlang

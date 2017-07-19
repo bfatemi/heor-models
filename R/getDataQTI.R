@@ -59,10 +59,6 @@ get_raw <- function(){
   stopifnot(RODBC::odbcQuery(cn, query, 1000) == 1)
   dat <- RODBC::odbcFetchRows(cn)
   
-  ## IF QUERY ERROR, THEN CONVERT TO R ERROR AND STOP EXECUTION
-  if(dat[1,1] == -1)
-    stop("Query caused error: ", query, call. = FALSE)
-  
   # set as data.table, set column names and return
   DT <- as.data.table(dat$data)
   setnames(DT, cnames)
