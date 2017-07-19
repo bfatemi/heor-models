@@ -5,14 +5,12 @@
 \alias{get_raw}
 \title{[TITLE NEEDED]}
 \usage{
-getDataQTI(SELECT = "*", WHERE = NULL)
+getDataQTI(hosp_id = NULL)
 
-get_raw()
+get_raw(hosp_id = NULL)
 }
 \arguments{
-\item{SELECT}{[DESCRIPTION OF ARGUMENT NEEDED]}
-
-\item{WHERE}{[DESCRIPTION OF ARGUMENT NEEDED]}
+\item{hosp_id}{[DESCRIPTION OF ARGUMENT NEEDED]}
 }
 \value{
 [DESCRIPTION OF OUTPUT NEEDED]

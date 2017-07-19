@@ -2,47 +2,55 @@
 #' 
 #' [DESCRIPTION OF FUNCTION NEEDED]
 #'
-#' @param SELECT [DESCRIPTION OF ARGUMENT NEEDED]
-#' @param WHERE [DESCRIPTION OF ARGUMENT NEEDED]
+#' @param hosp_id [DESCRIPTION OF ARGUMENT NEEDED]
 #' 
 #' @return [DESCRIPTION OF OUTPUT NEEDED]
 #' 
 #' @import data.table
 #' 
 #' @export
-getDataQTI <- function(SELECT = "*", WHERE = NULL){
+getDataQTI <- function(hosp_id = NULL){
   
   ## CRITICAL CLEANING FOR DATA ERRORS DONE HERE
-  DT <- get_raw()[
-    get("PRIMARY_PROCEDURE") != "_none"
-    & get("EMERGENT_NONEMERGENT") != "emergent"
-    & get("BMI_CATEGORY_PSM") != "Not Present"
-    & get("PATIENT_TYPE") %in% c("I", "O")
-    ]
+  DT <- get_raw(hosp_id)
   
-  
-  if(nrow(DT) == 0){
-    stop("No data available")
-  }
+  if(nrow(DT) == 0) stop("No data available")
   
   # MAKE FRIENDLY PAT ID
   DT[, c("PID") := .GRP, "PATIENT_ID_DEIDENTIFIED"]
   
+  ## Fix column classes here for now
+  numcols <- c("BMI", "PATIENT_AGE", "LOS_HOURS", "OR_TIME_MINS")
+  for(col in numcols)
+    set(DT, i = NULL, j = col, value = DT[, as.numeric(get(col))])
+  
   # CHARLSON SCORE SHOULD BE FACTORS (E.G. GROUPING VARIABLE) AND NOT 
   # INTEGERS BECAUSE OF RANGE AND VARIATION IN THE VARIABLE.
-  set(x = DT, 
-      i = NULL, 
-      j = "CHARLSON_SCORE", 
-      value = DT[, as.factor(get("CHARLSON_SCORE"))])
+  set(x = DT, NULL, "CHARLSON_SCORE", DT[, as.factor(get("CHARLSON_SCORE"))])
   
-  return( DT[] )
+  # PSM MODEL REQUIRES BOOLEAN TREATMENT VAR
+  DT[, c("IS_ROBOTIC") := get("MODALITY") == "Robotic"]
+  
+  # MAKE MODALITY A FACTOR WITH DEFINED LEVELS FOR CONVENIENCE
+  DT[, c("MODALITY") := factor(get("MODALITY"), levels = c("Open", "Robotic"))]
+  return( DT[!is.na(get("MODALITY"))] )
 }
 
 #' @describeIn getDataQTI helper function to perform query
-get_raw <- function(){
+#' @export
+get_raw <- function(hosp_id = NULL){
+  SELECT <- "*"
   
-  SELECT <- "*" #hardcode and add flexibility later
-  WHERE <- NULL #hardcode and add flexibility later
+  filter_wh <- "PRIMARY_PROCEDURE != '_none'
+  AND EMERGENT_NONEMERGENT != 'emergent' 
+  AND BMI_CATEGORY_PSM != 'Not Present' 
+  AND PATIENT_TYPE in ('I', 'O')"
+  
+  if(is.null(hosp_id)){
+    WHERE <- filter_wh
+  }else{
+    WHERE <- paste0(filter_wh, " AND HOSPITAL_ID = ", hosp_id)
+  }
   
   check <- system("ping corp.intusurg.com -n 1 -w 1000")
   if(check > 0) stop("ISI network not detected", call. = FALSE)
