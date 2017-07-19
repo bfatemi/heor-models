@@ -19,7 +19,9 @@ Imports: data.table,
     MatchIt,
     isdb,
     ggplot2,
-    lazyeval
+    lazyeval,
+    secret,
+    RODBC
 Remotes:
     hadley/rlang,
     bfatemi/isdb
