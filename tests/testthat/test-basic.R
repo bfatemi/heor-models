@@ -1,7 +1,6 @@
 
 
 test_that("Running a diff of means between psm matched groups", {
-  print(getwd())
   skip_on_travis()
   skip_on_cran()
   
