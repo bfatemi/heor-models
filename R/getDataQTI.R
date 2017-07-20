@@ -14,6 +14,7 @@ getDataQTI <- function(hosp_id = NULL){
   ## CRITICAL CLEANING FOR DATA ERRORS DONE HERE
   DT <- get_raw(hosp_id)
   
+  
   if(nrow(DT) == 0) stop("No data available")
   
   # MAKE FRIENDLY PAT ID
@@ -43,7 +44,7 @@ get_raw <- function(hosp_id = NULL){
   
   filter_wh <- "PRIMARY_PROCEDURE != '_none'
   AND EMERGENT_NONEMERGENT != 'emergent' 
-  AND BMI_CATEGORY_PSM != 'Not Present' 
+  AND BMI > 0 
   AND PATIENT_TYPE in ('I', 'O')"
   
   if(is.null(hosp_id)){
@@ -72,4 +73,90 @@ get_raw <- function(hosp_id = NULL){
   setnames(DT, cnames)
   return(DT)
 }
+
+# clean_raw <- function(raw_data){
+#   raw_data[, c("PATIENT_ID") := .GRP, "PATIENT_ID_DEIDENTIFIED"]
+#   set(raw_data, NULL, "PATIENT_ID_DEIDENTIFIED", NULL)
+#   
+#   cnam <- colnames(raw_data)
+#   
+#   col_hosp <- unique(
+#     c(which(str_detect(cnam, "HOSPITAL_")),
+#       which(str_detect(cnam, "^YEAR")))
+#   )
+#   
+#   col_pat <- unique(
+#     c(which(str_detect(cnam, "PROCEDURE")),
+#       which(str_detect(cnam, "ASA_SCORE_NUMERIC")),
+#       which(str_detect(cnam, "^PATIENT")),
+#       which(str_detect(cnam, "BMI$")),
+#       which(str_detect(cnam, "AGE$")),
+#       which(str_detect(cnam, "CHARLSON_SCORE")),
+#       which(str_detect(cnam, "BENIGN_MALIGNANT")),
+#       which(str_detect(cnam, "MODALITY")))
+#   )
+#   set(raw_data, NULL, "ASA_SCORE_NUMERIC", as.numeric(raw_data[, get("ASA_SCORE_NUMERIC")]))
+#   set(raw_data, NULL, "PATIENT_AGE", as.numeric(raw_data[, get("PATIENT_AGE")]))
+#   set(raw_data, NULL, "BMI", as.numeric(raw_data[, get("BMI")]))
+#   set(raw_data, NULL, "YEAR", as.numeric(raw_data[, get("YEAR")]))
+#   
+#   col_dur <- unique(
+#     c(which(str_detect(cnam, ".+_TIME_MINS")),
+#       which(str_detect(cnam, ".+_DAYS")),
+#       which(str_detect(cnam, ".+_HOURS")))
+#   )
+#   
+#   
+#   col_fin <- unique(
+#     c(which(str_detect(cnam, "REVENUE")),
+#       which(str_detect(cnam, "COST")),
+#       which(str_detect(cnam, "MARGIN")),
+#       which(str_detect(cnam, "_CHARGES")))
+#   )
+#   
+#   
+#   rDT <- raw_data[, cnam[c(col_hosp, col_pat, col_dur, col_fin)], with = FALSE]
+#   
+#   # get summary of data and clean out sparse cols
+#   col_descr <- easydata::easy_describe(rDT)
+#   
+#   drop <- col_descr[count_unique == 1 | pct_NA > .75, col_name]
+#   for(col in drop)
+#     set(rDT, NULL, col, NULL)
+#   
+#   ## MAKE DUR COLUMNS NUMERIC AND REMAINING COST COLS
+#   cnam <- colnames(rDT)
+#   
+#   col_dur <- unique(
+#     c(which(str_detect(cnam, ".+_TIME_MINS")),
+#       which(str_detect(cnam, ".+_DAYS")),
+#       which(str_detect(cnam, ".+_HOURS")))
+#   )
+#   for(col in cnam[col_dur])
+#     set(raw_data, NULL, col, as.numeric(raw_data[, get(col)]))
+#   
+#   cnam <- colnames(rDT)
+#   col_fin <- unique(
+#     c(which(str_detect(cnam, "REVENUE")),
+#       which(str_detect(cnam, "COST")),
+#       which(str_detect(cnam, "MARGIN")),
+#       which(str_detect(cnam, "_CHARGES")))
+#   )
+#   for(col in cnam[col_fin])
+#     set(raw_data, NULL, col, as.numeric(raw_data[, get(col)]))
+#   
+#   return(rDT)
+# }
+
+# 
+# raw_data <- get_raw()
+# rDT <- clean_raw(raw_data)
+
+
+
+
+
+
+
+
 

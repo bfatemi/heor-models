@@ -28,7 +28,7 @@ get_stats <- function(DT, outcome_vars){
       STD       = sd,
       VAR       = var
     )
-    sList <- split(DT, by = c("CID", "MODALITY"), flatten = FALSE)
+    sList <- split(DT, by = c("CID", "MODALITY"), flatten = FALSE, drop = TRUE)
     rbindlist(lapply(sList, function(i){
       modals <- names(i)
       
@@ -39,7 +39,10 @@ get_stats <- function(DT, outcome_vars){
       cbind(
         outcome = o,
         rbindlist(i)[, lapply(FUNS, function(fn) fn(get(o))), c("CID", "MODALITY")],
-        data.table(T_STAT = t.ml$statistic, P_VAL = t.ml$p.value)
+        data.table(T_STAT = t.ml$statistic, 
+                   P_VAL = t.ml$p.value,
+                   C_INT_L = t.ml$conf.int[1],
+                   C_INT_H = t.ml$conf.int[2])
       )
     }))
   }))
@@ -49,9 +52,9 @@ get_stats <- function(DT, outcome_vars){
 #' with each list element being a PSM matched dataset containing
 #' @export
 psm_data <- function(DT = NULL, 
-                          strat_vars = NULL, 
-                          covariates = NULL, 
-                          outcome_vars = NULL){
+                     strat_vars = NULL, 
+                     covariates = NULL, 
+                     outcome_vars = NULL){
   
   
   treat_var <- "MODALITY" # hardcode for now
@@ -61,7 +64,7 @@ psm_data <- function(DT = NULL,
   
   inc_vars <- c("HOSPITAL_ID", "PID") # include additional in output
   keepCols <- c(inc_vars, outcome_vars, strat_vars, treat_var, covariates) # Group output cols
-
+  
   ## TRIM THE DATASET AND REMOVE ANY ROWS WITH NA IN THESE COLUMNS. PSM NEEDS COMPLETE DATA
   trimDT <- DT[, keepCols, with=FALSE]
   psmDT <- trimDT[
@@ -69,7 +72,7 @@ psm_data <- function(DT = NULL,
           MARGIN = 1, 
           FUN = function(j) !any(j))
     ]
-
+  
   psmDT[, c("CID") := .GRP, c(strat_vars)] # stratify and label cohorts
   setkeyv(psmDT, "CID")
   
@@ -78,7 +81,7 @@ psm_data <- function(DT = NULL,
   
   if(nrow(cDT) == 0)
     stop("no modality pairs with at least 10 patients each", call. = FALSE)
-
+  
   cDT[, CID := .GRP, strat_vars] # Regroup id since many were filtered
   setkey(cDT, CID)
   cDT[, CID := as.factor(CID)] # set as factors
@@ -90,7 +93,7 @@ psm_data <- function(DT = NULL,
     ## TEST VARIATION WITH COVARS. IF NONE THEN DROP. REPLACE WITH PCA SOON
     new_covars <- unlist(lapply(covariates, function(i) i[length(unique(mDT[!is.na(get(i)), get(i)])) > 1]))
     control    <- mDT[, .N, treat_var][which.max(N), get(treat_var)]
-  
+    
     keepCols <- c(inc_vars, outcome_vars, strat_vars, treat_var, new_covars)
     psdata <- mDT[, keepCols, with = FALSE]
     

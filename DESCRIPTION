@@ -3,7 +3,7 @@ Title: Intuitive Surgical Data Science Toolkit
 Version: 0.0.0.9000
 Authors@R: person("Bobby", "Fatemi", email = "Bobby.Fatemi@intusurg.com", role = c("aut", "cre"))
 Description: [DESCRIPTION NEEDED].
-Depends: R (>= 3.3.3)
+Depends: R (>= 3.3.2)
 License: file LICENSE
 Encoding: UTF-8
 LazyData: true
