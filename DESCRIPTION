@@ -19,5 +19,3 @@ Imports: data.table,
     lazyeval,
     secret,
     RODBC
-Remotes:
-    hadley/rlang
