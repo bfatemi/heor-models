@@ -1,4 +1,4 @@
-# isds [![Build Status](https://travis-ci.org/bfatemi/isds.svg?branch=master)](https://travis-ci.org/bfatemi/isds) [![Coverage Status](https://img.shields.io/codecov/c/github/bfatemi/isds/master.svg)](https://codecov.io/github/bfatemi/isds?branch=master)
+# isds [![Travis-CI Build Status](https://travis-ci.org/bfatemi/isds.svg?branch=master)](https://travis-ci.org/bfatemi/isds) [![Coverage Status](https://img.shields.io/codecov/c/github/bfatemi/isds/master.svg)](https://codecov.io/github/bfatemi/isds?branch=master)
 
 ## Goal of isds
 
