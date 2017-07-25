@@ -18,7 +18,7 @@ test_that("Testing data query and cleaning", {
   check <- tryCatch(get_secret("is_connect", vault = nop), error = function(c) NULL)
   
   if(is.null(check)){
-    raw_data <- tryCatch(get_secret("raw_data"), 
+    raw_data <- tryCatch(get_secret("raw_data", local_key()), 
                          error = function(c) stop("Error on travis decryption of raw data", 
                                                   call. = FALSE))
   }else{
