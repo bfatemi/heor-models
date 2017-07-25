@@ -4,10 +4,10 @@
 \alias{runPSM}
 \title{Run Full Analysis with PSM Matching}
 \usage{
-runPSM(hosp_id = 10112)
+runPSM(hospID = NULL)
 }
 \arguments{
-\item{hosp_id}{A numeric variable representing the hospital id}
+\item{hospID}{A numeric variable representing the hospital id}
 }
 \value{
 [DOCUMENT RETURN VALUE]

@@ -7,10 +7,13 @@ Depends: R (>= 3.3.2)
 License: file LICENSE
 Encoding: UTF-8
 LazyData: true
-Suggests: covr,
-    testthat
+Suggests:
+    covr,
+    testthat,
+    devtools
 RoxygenNote: 6.0.1
-Imports: data.table,
+Imports:
+    data.table,
     stringr,
     rlang,
     stats,
@@ -18,4 +21,11 @@ Imports: data.table,
     MatchIt,
     lazyeval,
     secret,
-    RODBC
+    RODBC,
+    easydata
+Remotes:
+    bfatemi/easydata,
+    hadley/rlang,
+    gaborcsardi/secret
+URL: https://github.com/bfatemi/isds
+BugReports: https://github.com/bfatemi/isds/issues

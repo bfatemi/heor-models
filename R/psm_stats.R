@@ -62,7 +62,7 @@ psm_data <- function(DT = NULL,
   if(!"Robotic" %in% DT[, unique(get(treat_var))])
     stop("No Robotic modality observations detected in the treatment column", call. = FALSE)
   
-  inc_vars <- c("HOSPITAL_ID", "PID") # include additional in output
+  inc_vars <- c("HOSPITAL_ID", "PATIENT_ID") # include additional in output
   keepCols <- c(inc_vars, outcome_vars, strat_vars, treat_var, covariates) # Group output cols
   
   ## TRIM THE DATASET AND REMOVE ANY ROWS WITH NA IN THESE COLUMNS. PSM NEEDS COMPLETE DATA

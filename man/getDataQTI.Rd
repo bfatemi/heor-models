@@ -2,15 +2,12 @@
 % Please edit documentation in R/getDataQTI.R
 \name{getDataQTI}
 \alias{getDataQTI}
-\alias{get_raw}
 \title{[TITLE NEEDED]}
 \usage{
-getDataQTI(hosp_id = NULL)
-
-get_raw(hosp_id = NULL)
+getDataQTI(hospID = NULL)
 }
 \arguments{
-\item{hosp_id}{[DESCRIPTION OF ARGUMENT NEEDED]}
+\item{hospID}{[DESCRIPTION OF ARGUMENT NEEDED]}
 }
 \value{
 [DESCRIPTION OF OUTPUT NEEDED]
@@ -18,8 +15,3 @@ get_raw(hosp_id = NULL)
 \description{
 [DESCRIPTION OF FUNCTION NEEDED]
 }
-\section{Functions}{
-\itemize{
-\item \code{get_raw}: helper function to perform query
-}}
-
