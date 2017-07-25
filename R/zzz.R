@@ -1,6 +1,6 @@
 
 
-.onAttach <- function(libname, pkgname){
+.onLoad <- function(libname, pkgname){
   
   if( !nzchar(Sys.getenv("USER_KEY")) ){
     
@@ -17,7 +17,7 @@
       path.pubkey <- paste0(Sys.getenv("R_USER"), "/pubkey_isds.txt")
       openssl::write_ssh(key$pubkey, path.pubkey)
       
-      packageStartupMessage(paste0("\nAccess configured.\n\nEmail public key to: \n\tBobby.Fatemi@intusurg.com\nLocated here: \n\t", path.pubkey))
+      print(paste0("\nAccess configured.\n\nEmail public key to: \n\tBobby.Fatemi@intusurg.com\nLocated here: \n\t", path.pubkey))
     }
     
     Sys.setenv("USER_KEY" = tmp)
@@ -29,6 +29,12 @@
   options(secret.vault = path.vault)
 
 }
+
+# .onAttach <- function(libname, pkgname){
+#   path.pubkey <- paste0(Sys.getenv("R_USER"), "/pubkey_isds.txt")
+#   if(file.exists())
+#   
+# }
   # #   
   # # 
   # # Sys.getenv("USERPROFILE")
