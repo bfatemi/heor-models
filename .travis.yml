@@ -3,7 +3,6 @@
 language: R
 sudo: required
 cache: packages
-warnings_are_errors: false
 
 after_success:
   - Rscript -e 'covr::codecov()'
@@ -19,3 +18,5 @@ addons:
     - unixodbc-dev
     - r-recommended
     - pandoc
+    
+warnings_are_errors: false
