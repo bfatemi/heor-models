@@ -5,7 +5,7 @@
   if( !nzchar(Sys.getenv("USER_KEY")) ){
     
     # Set random RSA key as default
-    tmp <- normalizePath(paste0(path.expand("~/.ssh"), "/is_access.pem"), mustWork = FALSE)
+    tmp <- normalizePath(paste0(Sys.getenv("R_USER"), "/.ssh/is_access.pem"), mustWork = FALSE)
     
     if( !file.exists(tmp) ){
       key <- openssl::rsa_keygen()
