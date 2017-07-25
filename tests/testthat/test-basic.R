@@ -15,11 +15,12 @@ test_that("Testing data query and cleaning", {
   # if this fails, that means this local machine is not authorized
   # If the user of this machine is authorized, then read and decrypted stored data
   # secret::get_secret("is_connect",vault = nop)
-  check <- tryCatch(get_secret("is_connect", vault = nop), error = function(c) NULL)
+  check <- tryCatch(get_secret("is_connect", key = local_key(), vault = nop), 
+                    error = function(c) NULL)
   
   if(is.null(check)){
     raw_data <- tryCatch(get_secret("raw_data", local_key()), 
-                         error = function(c) stop("Error on travis decryption of raw data", 
+                         error = function(c) stop("Error on travis raw data decrypt data", 
                                                   call. = FALSE))
   }else{
     raw_data <- tryCatch(get_raw(), 
