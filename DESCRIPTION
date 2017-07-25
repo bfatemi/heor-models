@@ -22,10 +22,11 @@ Imports:
     lazyeval,
     secret,
     RODBC,
-    easydata
+    easydata,
+    openssl
 Remotes:
-    bfatemi/easydata,
     hadley/rlang,
+    bfatemi/easydata,
     gaborcsardi/secret
 URL: https://github.com/bfatemi/isds
 BugReports: https://github.com/bfatemi/isds/issues
