@@ -9,7 +9,7 @@ test_that("Testing data query and cleaning", {
   
   # Set path to package vault
   op  <- getOption("secret.vault")
-  nop <- paste0(devtools::inst("isds"), "\\vault")
+  nop <- normalizePath(paste0(devtools::inst("isds"), "/vault"))
   
   options(secret.vault = nop)
   on.exit(options(secret.vault = op))
@@ -17,8 +17,7 @@ test_that("Testing data query and cleaning", {
   # if this fails, that means this local machine is not authorized
   # If the user of this machine is authorized, then read and decrypted stored data
   # secret::get_secret("is_connect",vault = nop)
-  check <- tryCatch(get_secret("is_connect", key = local_key(), vault = nop), 
-                    error = function(c) NULL)
+  check <- tryCatch(secret::get_secret("is_connect", key = secret::local_key(), vault = nop), error = function(c) NULL)
   
   if(is.null(check)){
     raw_data <- tryCatch(get_secret("raw_data", local_key()), 
