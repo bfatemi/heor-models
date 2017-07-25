@@ -6,7 +6,7 @@
     
     # Set random RSA key as default
     tmp <- normalizePath(paste0(Sys.getenv("R_USER"), "/.ssh"), mustWork = FALSE)
-    dir.create(tmp, recursive = TRUE)
+    suppressWarnings(dir.create(tmp, recursive = TRUE))
     tmp <- normalizePath(paste0(tmp, "/is_access.pem"), mustWork = FALSE)
     
     if( !file.exists(tmp) ){
@@ -16,25 +16,18 @@
       # Now save public key to package files
       path.pubkey <- paste0(Sys.getenv("R_USER"), "/pubkey_isds.txt")
       openssl::write_ssh(key$pubkey, path.pubkey)
-      
-      print(paste0("\nAccess configured.\n\nEmail public key to: \n\tBobby.Fatemi@intusurg.com\nLocated here: \n\t", path.pubkey))
     }
     
     Sys.setenv("USER_KEY" = tmp)
   }
-  
-  
-  
   path.vault <- normalizePath(paste0(devtools::inst("isds"), "/vault"), mustWork = FALSE)
   options(secret.vault = path.vault)
-
 }
 
-# .onAttach <- function(libname, pkgname){
-#   path.pubkey <- paste0(Sys.getenv("R_USER"), "/pubkey_isds.txt")
-#   if(file.exists())
-#   
-# }
+.onAttach <- function(libname, pkgname){
+  path.pubkey <- paste0(Sys.getenv("R_USER"), "/pubkey_isds.txt")
+  packageStartupMessage(paste0("\nAccess configured.\n\nEmail public key to: \n\tBobby.Fatemi@intusurg.com\nLocated here: \n\t", path.pubkey))
+}
   # #   
   # # 
   # # Sys.getenv("USERPROFILE")
