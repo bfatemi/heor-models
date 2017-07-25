@@ -26,23 +26,10 @@
 
 .onAttach <- function(libname, pkgname){
   path.pubkey <- paste0(Sys.getenv("R_USER"), "/pubkey_isds.txt")
-  packageStartupMessage(paste0("\nAccess configured.\n\nEmail public key to: \n\tBobby.Fatemi@intusurg.com\nLocated here: \n\t", path.pubkey))
+  
+  tryCatch({
+    secret::get_secret("is_connect", Sys.getenv("USER_KEY"), getOption("secret.vault"))
+  },error = function(c){
+    packageStartupMessage(paste0("\nAccess not configured.\n\nEmail public key to: \n\tBobby.Fatemi@intusurg.com\nLocated here: \n\t", path.pubkey))
+  })
 }
-  # #   
-  # # 
-  # # Sys.getenv("USERPROFILE")
-  # # .Library <- normalizePath("C:/Users/AshokB/Documents/R/win-library/3.3")
-  # # 
-  # # install.packages("devtools", lib = .Library, dependencies = TRUE)
-  # # install.packages("backports", lib = .Library, dependencies = TRUE)
-  # 
-  # install_github("hadley/rlang", lib = .Library)
-  # install_github("gaborcsardi/secret", lib = .Library)
-  # install_github("bfatemi/isds", lib = .Library)
-  # 
-  # Sys.setenv(USER_KEY = "C:/Users/AshokB/.ssh/id_rsa")
-  # 
-  # 
-  # library(isds)
-  # runPSM()
-# }
