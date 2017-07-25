@@ -4,19 +4,26 @@
   
   if( !nzchar(Sys.getenv("USER_KEY")) ){
     
-    # Set random RSA key as default
-    tmp <- normalizePath(paste0(Sys.getenv("R_USER"), "/.ssh"), mustWork = FALSE)
-    suppressWarnings(dir.create(tmp, recursive = TRUE))
-    tmp <- normalizePath(paste0(tmp, "/is_access.pem"), mustWork = FALSE)
-    
-    if( !file.exists(tmp) ){
-      key <- openssl::rsa_keygen()
-      openssl::write_pem(key, tmp, password = "")  
+    tmp <- tryCatch({
+      # Set random RSA key as default
+      tmp <- normalizePath(paste0(Sys.getenv("R_USER"), "/.ssh"), mustWork = FALSE)
+      suppressWarnings(dir.create(tmp, recursive = TRUE))
+      tmp <- normalizePath(paste0(tmp, "/is_access.pem"), mustWork = FALSE)
       
-      # Now save public key to package files
-      path.pubkey <- paste0(Sys.getenv("R_USER"), "/pubkey_isds.txt")
-      openssl::write_ssh(key$pubkey, path.pubkey)
-    }
+      if( !file.exists(tmp) ){
+        key <- openssl::rsa_keygen()
+        openssl::write_pem(key, tmp, password = "")  
+        
+        # Now save public key to package files
+        path.pubkey <- paste0(Sys.getenv("R_USER"), "/pubkey_isds.txt")
+        openssl::write_ssh(key$pubkey, path.pubkey)
+      }
+      return(tmp)
+    }, error = function(c){
+      warning("Access not configured")
+      return("")
+    })
+    
     
     Sys.setenv("USER_KEY" = tmp)
   }

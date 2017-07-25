@@ -106,9 +106,9 @@ psm_data <- function(DT = NULL,
       cleanDT <- psdata[ -indNA ]
     }
     
-    env <- rlang::caller_env()
+    env <- caller_env()
     tryCatch({
-      f.expr <- rlang::parse_expr(paste0("IS_TREATMENT ~ ", paste0(new_covars, collapse = " + ")))
+      f.expr <- paste0("IS_TREATMENT ~ ", paste0(new_covars, collapse = " + "))
       
       ml.psm <- MatchIt::matchit(data = cleanDT, 
                                  formula = as.formula(f.expr, env),

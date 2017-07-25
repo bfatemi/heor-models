@@ -57,12 +57,8 @@ runPSM <- function(hospID = NULL){
   ## BEGIN TRANSFORMATION OF DATA
   stat_cols <- c("N", "MEAN", "MEDIAN", "STD", "VAR", "TSTAT", "PVAL", "CLOW", "CHIGH")
   
-  env <- rlang::caller_env()
-  # f <- easydata::xFormula(
-  #   y = colnames(outDT)[ !colnames(outDT) %in% c(stat_cols, "outcome") ],
-  #   x = "outcome"
-  # )
-  # f.expr <- rlang::parse_expr(paste0("IS_TREATMENT ~ ", paste0(new_covars, collapse = " + ")))
+  
+  env <- caller_env()
   y <- paste0(colnames(outDT)[ !colnames(outDT) %in% c(stat_cols, "outcome") ], collapse = " + ")
   x <- "outcome"
   f.expr <- paste0(y, " ~ ", x)

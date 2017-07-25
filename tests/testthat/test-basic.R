@@ -68,52 +68,6 @@ test_that("Local Test of user-facing getDataQTI (wrapper around get_raw and clea
   }
   
 })
-# 
-#   # # Skip if travis does not have access to secret
-#   # testthat::(
-#   #   "travis_ci" %in% secret::list_owners("is_connect", getOption("secret.vault")), 
-#   #   "Travis does not have access to secret"
-#   # )
-#   
-#   # 
-#   # # getDataQTI()
-#   # # get_stats()
-#   # # psm_data()
-#   # # runPSM()
-#   # 
-#   # 
-#   # skip_on_travis()
-#   # skip_on_cran()
-#   # 
-#   # 
-#   # 
-#   # secret::local_key()
-#   # secret::list_users(getOption("secret.vault"))
-#   
-#   
-#   # Check if private key exists and user is authorized
-#   
-# 
-#   DT <- getDataQTI()
-#   expect_true(is.data.table(DT))  
-#   expect_true(nrow(DT) > 1)
-  
-  # strat_vars   <- c("PRIMARY_PROCEDURE", "BENIGN_MALIGNANT", "PATIENT_TYPE")
-  # covariates   <- c("BMI", "PATIENT_AGE", "CHARLSON_SCORE", "PATIENT_GENDER")
-  # outcome_vars <- c("LOS_HOURS", "OR_TIME_MINS")
-  # 
-  # psm_dt <- psm_data(DT = DT,
-  #                      strat_vars = strat_vars,
-  #                      covariates = covariates,
-  #                      outcome_vars = outcome_vars)
-  # expect_true(is.data.table(psm_dt))
-  # expect_true(nrow(psm_dt) > 1)
-  # 
-  # sdt <- get_stats(psm_dt, outcome_vars)
-  # expect_true(is.data.table(sdt))
-  # expect_true(nrow(sdt) > 1)
-  # 
-  # runPSM(hosp_id = 10112)
 
 
 

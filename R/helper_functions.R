@@ -1,3 +1,7 @@
+caller_env <- function (n = 1){
+  parent.frame(n + 1)
+}
+
 #' #' Statistical Helper Functions
 #' #'
 #' #' @param DT [ARGUMENT DEFINITION NEEDED]
