@@ -1,5 +1,5 @@
 
-context("Test of all major functions. Travis_ci will decrypt and use necessary data.")
+context("Test of all major functions")
 
 test_that("Testing data query and cleaning", {
 
