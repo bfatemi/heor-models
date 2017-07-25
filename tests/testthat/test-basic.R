@@ -3,6 +3,8 @@ context("Test of all major functions. Travis_ci will decrypt and use necessary d
 
 test_that("Testing data query and cleaning", {
 
+  skip_on_cran()
+  skip_on_travis()
   # expect_false(Sys.getenv("USER_KEY") == "")
   
   # Set path to package vault
