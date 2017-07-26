@@ -2,9 +2,12 @@
 % Please edit documentation in R/get_raw_data.R
 \name{get_raw}
 \alias{get_raw}
+\alias{get_conn}
 \alias{get_raw}
 \title{Internal Data Query Function}
 \usage{
+get_conn()
+
 get_raw(hospID = NULL)
 }
 \arguments{
@@ -18,6 +21,8 @@ Internal Data Query Function
 }
 \section{Functions}{
 \itemize{
+\item \code{get_conn}: [DESCRIPTION OF FUNCTION NEEDED]
+
 \item \code{get_raw}: [DESCRIPTION OF FUNCTION NEEDED]
 }}
 

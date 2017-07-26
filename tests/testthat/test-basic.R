@@ -53,7 +53,10 @@ test_that("Local Test of user-facing getDataQTI (wrapper around get_raw and clea
   
   # if this fails, that means this local machine is not authorized
   # If the user of this machine is authorized, then read and decrypted stored data
-  check <- tryCatch(secret::get_secret("is_connect", key = secret::local_key(), vault = nop), error = function(c) NULL)
+  check <- tryCatch(secret::get_secret("is_connect", 
+                                       key = secret::local_key(), 
+                                       vault = nop), 
+                    error = function(c) NULL)
   
   if(!is.null(check)){
     DT <- getDataQTI()

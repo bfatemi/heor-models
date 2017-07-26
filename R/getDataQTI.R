@@ -7,26 +7,27 @@
 #' @return [DESCRIPTION OF OUTPUT NEEDED]
 #' 
 #' @import data.table
-#' 
+#' @name QTI_data
+NULL
+
+#' @describeIn QTI_data [DESCRIPTION OF FUNCTION NEEDED]
 #' @export
 getDataQTI <- function(hospID = NULL){
-  
-  ## CRITICAL CLEANING FOR DATA ERRORS DONE HERE
   cDT <- clean_data(get_raw(hospID))
-  
   if(nrow(cDT) == 0) 
     stop("No data available")
-  
   return(cDT[!is.na(get("MODALITY"))])
+}
+
+#' @describeIn QTI_data [DESCRIPTION OF FUNCTION NEEDED]
+#' @export
+getLevelsQTI <- function(){
+  pkey  <- secret::local_key()
+  vpath <- getOption("secret.vault")
   
-  # cDT <- clean_data(DT[
-  #   get("PRIMARY_PROCEDURE") != '_none'
-  #   & get("EMERGENT_NONEMERGENT") != 'emergent'
-  #   & get("BMI") > 0
-  #   & get("PATIENT_TYPE") %in% c('I', 'O')
-  #   & get("MODALITY") %in% c("Robotic", "Open")
-  #   ])
-  
+  secret::get_secret(name = "levelList", 
+                     key = pkey, 
+                     vault = vpath)
 }
 
 
