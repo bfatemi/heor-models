@@ -4,7 +4,7 @@ context("Test of all major functions")
 test_that("Testing data query and cleaning", {
 
   skip_on_cran()
-  # skip_on_travis()
+  skip_on_travis()
   # expect_false(Sys.getenv("USER_KEY") == "")
   
   # Set path to package vault
@@ -41,7 +41,7 @@ test_that("Testing data query and cleaning", {
   
 
 test_that("Local Test of user-facing getDataQTI (wrapper around get_raw and clean_data)", {
-  # skip_on_travis()
+  skip_on_travis()
   skip_on_cran()
   
   # Set path to package vault
