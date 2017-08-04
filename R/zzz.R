@@ -31,6 +31,11 @@
   # }
   
   path.key <- normalizePath(paste0(devtools::inst("isds"), "/access.pk"), mustWork = FALSE)
+  
+  ## Write out local key to package folder if needed
+  if(!file.exists(path.key))
+    openssl::write_pem(secret::local_key(), path.key)
+  
   path.vault <- normalizePath(paste0(devtools::inst("isds"), "/vault"), mustWork = FALSE)
   options(secret.vault = path.vault)
   options(secret.key = path.key)

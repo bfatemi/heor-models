@@ -17,7 +17,7 @@ getDataQTI <- function(hospID = NULL){
   cDT <- clean_data(get_raw(hospID))
   if(nrow(cDT) == 0) 
     stop("No data available")
-  return(cDT[!is.na(get("MODALITY"))])
+  return(cDT)
 }
 
 #' @describeIn QTI_data [DESCRIPTION OF FUNCTION NEEDED]

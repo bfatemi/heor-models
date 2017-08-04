@@ -8,22 +8,23 @@ clean_data <- function(rawDT){
   
   cnam <- colnames(rawDT)
   expr <- substitute(which(stringr::str_detect(cnam, X)))
-  pats <- c("HOSPITAL_",
-            "^YEAR",
-            "PROCEDURE",
-            "ASA_SCORE_NUMERIC",
-            "^PATIENT",
-            "BMI$",
-            "AGE$",
-            "CHARLSON_SCORE",
-            "BENIGN_MALIGNANT",
-            "MODALITY",
-            ".+_TIME_MINS",
-            ".+_DAYS",
-            ".+_HOURS")
+  pats <- c("Hospital",
+            "^DischargeYear",
+            "Procedure",
+            "ASAScoreNumeric",
+            "^Patient",
+            "InpatientOutpatient",
+            "PatientCharlsonScore",
+            "BenignMalignant",
+            "Modality",
+            ".+TimeMins",
+            ".+Days",
+            ".+Hours")
+  
   col_index <- unique(unlist(lapply(pats, function(i) eval(expr, list(X = i)))))
   
   rdata <- rawDT[, col_index, with=FALSE]
+  
   cnam <- colnames(rdata)
   expr <- substitute(which(stringr::str_detect(cnam, X)))
   
@@ -38,18 +39,14 @@ clean_data <- function(rawDT){
   ## MAKE DUR COLUMNS NUMERIC AND REMAINING COST COLS
   cnam <- colnames(rdata)
   
-  numPats <- c("CHARLSON_SCORE",
-               "^BMI$",
-               "ASA_SCORE_NUMERIC",
-               "PATIENT_AGE",
-               ".+_TIME_MINS",
-               ".+_DAYS",
-               ".+_HOURS",
-               "^YEAR$",
-               "REVENUE",
-               "COST",
-               "MARGIN",
-               "_CHARGES")
+  numPats <- c("PatientCharlsonScore",
+               "PatientBMI$",
+               "ASAScoreNumeric",
+               "PatientAge$",
+               ".+TimeMins",
+               ".+Days",
+               ".+Hours",
+               "DischargeYear")
   num_cols <- cnam[unique(unlist(lapply(numPats, function(i) eval(expr, list(X = i)))))]
   
   for(col in num_cols){
@@ -64,18 +61,22 @@ clean_data <- function(rawDT){
   }
   
   # MAKE PATIENT ID FRIENDLY
-  rdata[, c("PATIENT_ID") := .GRP, "PATIENT_ID_DEIDENTIFIED"]
-  set(rdata, NULL, "PATIENT_ID_DEIDENTIFIED", NULL)
+  rdata[, c("PatientID") := .GRP, "PatientIDDeidentified"]
+  set(rdata, NULL, "PatientIDDeidentified", NULL)
   
   # CHARLSON SCORE SHOULD BE FACTORS (E.G. GROUPING VARIABLE) AND NOT 
   # INTEGERS BECAUSE OF RANGE AND VARIATION IN THE VARIABLE.
-  set(x = rdata, NULL, "CHARLSON_SCORE", rdata[, as.factor(get("CHARLSON_SCORE"))])
+  set(x = rdata, NULL, "PatientCharlsonScore", rdata[, as.factor(get("PatientCharlsonScore"))])
   
   # PSM MODEL REQUIRES BOOLEAN TREATMENT VAR
-  rdata[, c("IS_ROBOTIC") := get("MODALITY") == "Robotic"]
+  rdata[, c("IsRobotic") := get("Modality") == "Robotic"]
   
   # MAKE MODALITY A FACTOR WITH DEFINED LEVELS FOR CONVENIENCE
-  rdata[, c("MODALITY") := as.factor(get("MODALITY"))]
+  rdata[, c("Modality") := as.factor(get("Modality"))]
   
-  return(rdata[])
+  ## FILTER ON CRITICAL COLUMNS
+  DT <- rdata[ !is.na(get("PatientCharlsonScore")) & 
+                 !is.na(get("PatientBMI")) & 
+                 get("ORTimeMins") > 0]
+  return(DT)
 }

@@ -22,13 +22,13 @@ NULL
 get_stats <- function(DT, outcome_vars){
   rbindlist(lapply(outcome_vars, function(o){
     FUNS <- list(
-      PSM_COUNT = length,
-      MEAN      = mean,
-      MEDIAN    = median,
+      PSMCount = length,
+      Mean      = mean,
+      Median    = median,
       STD       = sd,
-      VAR       = var
+      Var       = var
     )
-    sList <- split(DT, by = c("CID", "MODALITY"), flatten = FALSE, drop = TRUE)
+    sList <- split(DT, by = c("CID", "Modality"), flatten = FALSE, drop = TRUE)
     rbindlist(lapply(sList, function(i){
       modals <- names(i)
       
@@ -38,11 +38,11 @@ get_stats <- function(DT, outcome_vars){
       
       cbind(
         outcome = o,
-        rbindlist(i)[, lapply(FUNS, function(fn) fn(get(o))), c("CID", "MODALITY")],
-        data.table(T_STAT = t.ml$statistic, 
-                   P_VAL = t.ml$p.value,
-                   C_INT_L = t.ml$conf.int[1],
-                   C_INT_H = t.ml$conf.int[2])
+        rbindlist(i)[, lapply(FUNS, function(fn) fn(get(o))), c("CID", "Modality")],
+        data.table(TStat = t.ml$statistic, 
+                   PValue = t.ml$p.value,
+                   CLow = t.ml$conf.int[1],
+                   CHigh = t.ml$conf.int[2])
       )
     }))
   }))
@@ -57,15 +57,24 @@ psm_data <- function(DT = NULL,
                      outcome_vars = NULL){
   
   
-  treat_var <- "MODALITY" # hardcode for now
+  treat_var <- "Modality" # hardcode for now
   
   if(!"Robotic" %in% DT[, unique(get(treat_var))])
     stop("No Robotic modality observations detected in the treatment column", call. = FALSE)
   
-  inc_vars <- c("HOSPITAL_ID", "PATIENT_ID") # include additional in output
-  keepCols <- c(inc_vars, outcome_vars, strat_vars, treat_var, covariates) # Group output cols
+  # include additional in output
+  inc_vars <- c("HospitalID", "PatientID")
   
-  ## TRIM THE DATASET AND REMOVE ANY ROWS WITH NA IN THESE COLUMNS. PSM NEEDS COMPLETE DATA
+  # Group output cols
+  keepCols <- c(inc_vars, 
+                outcome_vars, 
+                strat_vars, 
+                treat_var, 
+                covariates)
+  
+  ## PSM NEEDS COMPLETE DATA
+  #   - TRIM THE DATASET AND REMOVE ANY ROWS WITH NA IN THESE COLUMNS
+  #
   trimDT <- DT[, keepCols, with=FALSE]
   psmDT <- trimDT[
     apply(X = trimDT[, lapply(.SD, FUN = function(col) is.na(col))], 
@@ -88,38 +97,38 @@ psm_data <- function(DT = NULL,
   
   
   # Split each cohort and run psm analysis
-  mList <- lapply(split( cDT, cDT$CID ), function(mDT){
+  ll <- split( cDT, cDT$CID )
+  
+  mList <- lapply(ll, function(mDT){
     
     ## TEST VARIATION WITH COVARS. IF NONE THEN DROP. REPLACE WITH PCA SOON
     new_covars <- unlist(lapply(covariates, function(i) i[length(unique(mDT[!is.na(get(i)), get(i)])) > 1]))
-    control    <- mDT[, .N, treat_var][which.max(N), get(treat_var)]
+    control <- mDT[, .N, treat_var][which.max(N), get(treat_var)]
     
     keepCols <- c(inc_vars, outcome_vars, strat_vars, treat_var, new_covars)
     psdata <- mDT[, keepCols, with = FALSE]
     
-    psdata[, IS_TREATMENT := get(treat_var) != control]
+    psdata[, c("IsTreatment") := get(treat_var) != control]
     
-    indNA <- which(Reduce(`|`, lapply(psdata, function(i) is.na(i))))
-    if(length(indNA) == 0){
-      cleanDT <- psdata
-    }else{
-      cleanDT <- psdata[ -indNA ]
-    }
+    # remove any rows that has an NA observation
+    cleanDT <- psdata[ !Reduce(`|`, lapply(psdata, function(i) is.na(i))) ]
+    
     
     env <- caller_env()
-    tryCatch({
-      f.expr <- paste0("IS_TREATMENT ~ ", paste0(new_covars, collapse = " + "))
+    
+    matched_data <- tryCatch({
+      f.expr <- paste0("IsTreatment ~ ", paste0(new_covars, collapse = " + "))
       
       ml.psm <- MatchIt::matchit(data = cleanDT, 
                                  formula = as.formula(f.expr, env),
                                  method = "nearest", 
                                  ratio = 1, 
                                  distance = "logit")
-      matched_data <- cbind(
+      cbind(
         CID = mDT[, unique(CID)],
         as.data.table(MatchIt::get_matches(ml.psm, cleanDT))
       )
-      return(matched_data)
+      
       
     }, error = function(c){
       if(stringr::str_detect(c$message, "No units were matched"))

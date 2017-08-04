@@ -3,10 +3,13 @@
 \name{get_raw}
 \alias{get_raw}
 \alias{get_conn}
+\alias{get_conn_string}
 \alias{get_raw}
 \title{Internal Data Query Function}
 \usage{
 get_conn()
+
+get_conn_string()
 
 get_raw(hospID = NULL)
 }
@@ -22,6 +25,8 @@ Internal Data Query Function
 \section{Functions}{
 \itemize{
 \item \code{get_conn}: [DESCRIPTION OF FUNCTION NEEDED]
+
+\item \code{get_conn_string}: [DESCRIPTION OF FUNCTION NEEDED]
 
 \item \code{get_raw}: [DESCRIPTION OF FUNCTION NEEDED]
 }}

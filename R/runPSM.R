@@ -6,56 +6,70 @@
 #' @export
 #'
 #' @import data.table
-runPSM <- function(hospID = NULL){
-  if(is.null(hospID)){
-    qDT <- getDataQTI()
-  }else{
-    qDT <- getDataQTI(hospID = hospID)
-  }
-    
+runPSM <- function(hospID = NULL, modal = "Open"){
+  qDT <- getDataQTI(hospID = hospID)[Modality %in% c("Robotic", modal)]
   
   if(nrow(qDT) == 0) 
     stop("No data for modality and/or hosp id", call. = FALSE)
   
-  hospList <- split(qDT, qDT$HOSPITAL_ID)
+  hospList <- split(qDT, qDT[, get("HospitalID")])
   
-  strat    <- c("PRIMARY_PROCEDURE", "BENIGN_MALIGNANT", "PATIENT_TYPE")
-  covars   <- c("BMI", "PATIENT_AGE", "CHARLSON_SCORE", "PATIENT_GENDER")
-  outcomes <- c("LOS_HOURS", "OR_TIME_MINS")
+  strat    <- c("ProcedurePrimary", 
+                "BenignMalignant", 
+                "InpatientOutpatient")
+  covars   <- c("PatientBMI", 
+                "PatientAge", 
+                "PatientCharlsonScore", 
+                "PatientGender")
+  outcomes <- c("LOSHours", 
+                "ORTimeMins")
   
   ##
   ## Run analysis for each hospital
   ##
+  # count <- 2
   psmDataList <- lapply(hospList, function(hDT){
-    DT <- psm_data(hDT, strat, covars, outcomes)
+    # hDT <- hospList[[count]]
+    
+    # If each modality does not have at least 10 obs each, then return null for this hosp
+    if(length(hDT[, .N, Modality][N > 10, Modality]) < 2){
+      warning("Not enough data for comparison of modalities for HospitalID: ", hDT[, unique(HospitalID)], call. = FALSE)
+      return(NULL)
+    }
+    
+    DT <- psm_data(DT = hDT, 
+                   strat_vars = strat, 
+                   covariates = covars, 
+                   outcome_vars = outcomes)
     
     # get result and merge back with descriptor columns needed
-    res <- get_stats(DT, outcomes)
-    dtable <- DT[, .(PSM_COUNT = .N), c("CID", 
-                                        "MODALITY",
-                                        "HOSPITAL_ID", 
-                                        "PRIMARY_PROCEDURE", 
-                                        "BENIGN_MALIGNANT", 
-                                        "PATIENT_TYPE")]
+    res <- get_stats(DT = DT, outcome_vars = outcomes)
     
-    setkeyv(dtable, c("CID", "PSM_COUNT", "MODALITY"))
-    setkeyv(res,    c("CID", "PSM_COUNT", "MODALITY"))
+    dtable <- DT[, .(PSMCount = .N), c("CID", 
+                                       "Modality",
+                                       "HospitalID", 
+                                       "ProcedurePrimary", 
+                                       "BenignMalignant", 
+                                       "InpatientOutpatient")]
+    
+    setkeyv(dtable, c("CID", "PSMCount", "Modality"))
+    setkeyv(res,    c("CID", "PSMCount", "Modality"))
     return(res[dtable])
   })
   
   # Bind together all results for individual hospitals, then join to add hosp name
   DT <- rbindlist(psmDataList)
-  htable <- qDT[, .N, c("HOSPITAL_ID", "HOSPITAL_NAME")][, !"N"]
+  htable <- qDT[, .N, c("HospitalID", "HospitalName")][, !"N"]
   
-  outDT <- htable[DT, on = "HOSPITAL_ID"]
+  outDT <- htable[DT, on = "HospitalID"]
   
   # change names for convenience
-  setnames(outDT, c("C_INT_L", "C_INT_H"), c("CLOW", "CHIGH"))
-  setnames(outDT, c("T_STAT", "P_VAL"), c("TSTAT", "PVAL"))
-  setnames(outDT, "PSM_COUNT", "N")
+  # setnames(outDT, c("CLow", "CHigh"), c("CLOW", "CHIGH"))
+  # setnames(outDT, c("T_STAT", "P_VAL"), c("TSTAT", "PVAL"))
+  setnames(outDT, "PSMCount", "N")
   
   ## BEGIN TRANSFORMATION OF DATA
-  stat_cols <- c("N", "MEAN", "MEDIAN", "STD", "VAR", "TSTAT", "PVAL", "CLOW", "CHIGH")
+  stat_cols <- c("N", "Mean", "Median", "STD", "Var", "TStat", "PValue", "CLow", "CHigh")
   
   
   env <- caller_env()
@@ -65,7 +79,7 @@ runPSM <- function(hospID = NULL){
   
   
   woutDT <- dcast.data.table(data = outDT, 
-                             sep = ".", 
+                             sep = "_", 
                              formula = as.formula(f.expr, env), 
                              value.var = stat_cols, 
                              fill = NA)

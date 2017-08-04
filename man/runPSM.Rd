@@ -4,7 +4,7 @@
 \alias{runPSM}
 \title{Run Full Analysis with PSM Matching}
 \usage{
-runPSM(hospID = NULL)
+runPSM(hospID = NULL, modal = "Open")
 }
 \arguments{
 \item{hospID}{A numeric variable representing the hospital id}
