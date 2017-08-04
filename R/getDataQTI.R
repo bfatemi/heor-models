@@ -7,6 +7,7 @@
 #' @return [DESCRIPTION OF OUTPUT NEEDED]
 #' 
 #' @import data.table
+#' @importFrom openssl read_key
 #' @name QTI_data
 NULL
 
@@ -22,11 +23,12 @@ getDataQTI <- function(hospID = NULL){
 #' @describeIn QTI_data [DESCRIPTION OF FUNCTION NEEDED]
 #' @export
 getLevelsQTI <- function(){
-  pkey  <- secret::local_key()
+  
+  kpath <- getOption("secret.key")
   vpath <- getOption("secret.vault")
   
   secret::get_secret(name = "levelList", 
-                     key = pkey, 
+                     key = read_key(kpath), 
                      vault = vpath)
 }
 

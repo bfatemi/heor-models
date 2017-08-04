@@ -5,21 +5,24 @@ test_that("Testing data query and cleaning", {
 
   skip_on_cran()
   skip_on_travis()
-  # expect_false(Sys.getenv("USER_KEY") == "")
   
-  # Set path to package vault
-  op  <- getOption("secret.vault")
-  nop <- normalizePath(paste0(devtools::inst("isds"), "/vault"))
+  ## Write out local key to package folder
+  openssl::write_pem(local_key(), paste0(system.file(package = "isds"), "/access.pk"))
   
-  options(secret.vault = nop)
-  on.exit(options(secret.vault = op))
+  # Set path to package vault and secret key
+  kpath <- normalizePath(paste0(devtools::inst("isds"), "/access.pk"), mustWork = FALSE)
+  vpath <- normalizePath(paste0(devtools::inst("isds"), "/vault"), mustWork = FALSE)
   
+  # options(secret.vault = vpath)
+  # options(secret.key   = kpath)
+  
+  key <- openssl::read_key(kpath)
   # if this fails, that means this local machine is not authorized
   # If the user of this machine is authorized, then read and decrypted stored data
-  check <- tryCatch(secret::get_secret("is_connect", key = secret::local_key(), vault = nop), error = function(c) NULL)
+  check <- tryCatch(secret::get_secret("is_connect", key = key, vault = vpath), error = function(c) NULL)
   
   if(is.null(check)){
-    raw_data <- tryCatch(secret::get_secret("raw_data", secret::local_key()), 
+    raw_data <- tryCatch(secret::get_secret("raw_data", key = key, vault = vpath), 
                          error = function(c) stop("Error on travis raw data decrypt data", call. = FALSE))
   }else{
     raw_data <- tryCatch(get_raw(), 
@@ -44,18 +47,20 @@ test_that("Local Test of user-facing getDataQTI (wrapper around get_raw and clea
   skip_on_travis()
   skip_on_cran()
   
-  # Set path to package vault
-  op  <- getOption("secret.vault")
-  nop <- paste0(devtools::inst("isds"), "\\vault")
+  # Set path to package vault and secret key
+  kpath <- normalizePath(paste0(devtools::inst("isds"), "/access.pk"), mustWork = FALSE)
+  vpath <- normalizePath(paste0(devtools::inst("isds"), "/vault"), mustWork = FALSE)
   
-  options(secret.vault = nop)
-  on.exit(options(secret.vault = op))
+  # options(secret.vault = vpath)
+  # options(secret.key   = kpath)
+  
+  key <- openssl::read_key(kpath)
   
   # if this fails, that means this local machine is not authorized
   # If the user of this machine is authorized, then read and decrypted stored data
   check <- tryCatch(secret::get_secret("is_connect", 
-                                       key = secret::local_key(), 
-                                       vault = nop), 
+                                       key = key, 
+                                       vault = vpath), 
                     error = function(c) NULL)
   
   if(!is.null(check)){

@@ -7,6 +7,7 @@
 #' @importFrom secret get_secret
 #' @importFrom stringr str_c
 #' @importFrom RODBC odbcDriverConnect odbcClose sqlColumns odbcQuery odbcFetchRows
+#' @importFrom openssl read_key
 #' @name get_raw
 NULL
 
@@ -20,8 +21,11 @@ get_conn <- function(){
   if(chk > 0) 
     stop("ISI network not detected", call. = FALSE)
   
+  kpath <- getOption("secret.key")
+  vpath <- getOption("secret.vault")
+  
   # Get encrypted connection string arguments
-  ciph <- get_secret("is_connect")
+  ciph <- get_secret("is_connect", key = read_key(kpath), vault = vpath)
   
   # Get connection object and start query text
   conn <- odbcDriverConnect( str_c(names(ciph$cn_args), "=", ciph$cn_args, collapse = ";") )
