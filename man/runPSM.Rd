@@ -8,6 +8,8 @@ runPSM(hospID = NULL, modal = "Open")
 }
 \arguments{
 \item{hospID}{A numeric variable representing the hospital id}
+
+\item{modal}{[DOC NEEDED]}
 }
 \value{
 [DOCUMENT RETURN VALUE]

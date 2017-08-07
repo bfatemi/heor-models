@@ -1,7 +1,7 @@
 #' Run Full Analysis with PSM Matching
 #'
 #' @param hospID A numeric variable representing the hospital id
-#'
+#' @param modal [DOC NEEDED]
 #' @return [DOCUMENT RETURN VALUE]
 #' @export
 #'
