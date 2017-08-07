@@ -27,9 +27,7 @@ runPSM <- function(hospID = NULL, modal = "Open"){
   ##
   ## Run analysis for each hospital
   ##
-  # count <- 2
   psmDataList <- lapply(hospList, function(hDT){
-    # hDT <- hospList[[count]]
     
     # If each modality does not have at least 10 obs each, then return null for this hosp
     if(length(hDT[, .N, Modality][N > 10, Modality]) < 2){
