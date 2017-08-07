@@ -1,7 +1,9 @@
 #' Internal Data Cleaning Function
 #'
 #' @param rawDT [DESCRIPTION OF ARG NEEDED]
-#'
+#' 
+#' @importFrom easydata easy_describe
+#' 
 #' @return A trimmed data.table
 #' @export
 clean_data <- function(rawDT){
