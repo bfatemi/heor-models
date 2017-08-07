@@ -17,7 +17,7 @@ Imports:
     rlang,
     stats,
     pryr,
-    MatchIt,
+    MatchIt (>= 3.0.1),
     lazyeval,
     secret,
     RODBC,

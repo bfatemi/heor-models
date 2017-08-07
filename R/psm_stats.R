@@ -100,7 +100,7 @@ psm_data <- function(DT = NULL,
   ll <- split( cDT, cDT$CID )
   
   mList <- lapply(ll, function(mDT){
-    
+    # mDT<-ll[[1]]
     ## TEST VARIATION WITH COVARS. IF NONE THEN DROP. REPLACE WITH PCA SOON
     new_covars <- unlist(lapply(covariates, function(i) i[length(unique(mDT[!is.na(get(i)), get(i)])) > 1]))
     control <- mDT[, .N, treat_var][which.max(N), get(treat_var)]
