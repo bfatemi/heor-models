@@ -29,41 +29,41 @@
 
 
 .onLoad <- function(libname, pkgname){
-  path.key <- normalizePath(paste0(devtools::inst("isds"), "/access.pk"), mustWork = FALSE)
-  
-  ## Write out local key to package folder if needed
-  if(!file.exists(path.key))
-    openssl::write_pem(secret::local_key(), path.key)
-  
-  path.vault <- normalizePath(paste0(devtools::inst("isds"), "/vault"), mustWork = FALSE)
-  options(secret.vault = path.vault)
-  options(secret.key = path.key)
-  
-  # tmp <- paste0(gsub("base$", "", system.file()), "/access.pk")
-  # kpath <- normalizePath(tmp, mustWork = FALSE)
+  # path.key <- normalizePath(paste0(devtools::inst("isds"), "/access.pk"), mustWork = FALSE)
   # 
   # ## Write out local key to package folder if needed
-  # if(!file.exists(kpath)){
-  #   packageStartupMessage("No access key found. 
-  #                         Please use make_is_key() to initiate access.")
-  #   return(invisible(FALSE))
-  # }
+  # if(!file.exists(path.key))
+  #   openssl::write_pem(secret::local_key(), path.key)
   # 
-  # vpath <- normalizePath(paste0(devtools::inst("isds"), "/vault"), mustWork = FALSE)
-  # options(secret.vault = vpath)
-  # options(secret.key = kpath)
+  # path.vault <- normalizePath(paste0(devtools::inst("isds"), "/vault"), mustWork = FALSE)
+  # options(secret.vault = path.vault)
+  # options(secret.key = path.key)
   
-  # ghp <- Sys.getenv("GITHUB_PAT")
-  # Sys.setenv(GITHUB_PAT = "")
-  # on.exit(Sys.setenv(GITHUB_PAT = ghp))
-  # 
-  # lines <- capture.output(devtools::source_gist(id = "d9fbf427eb67282ca3549ea0c420945b", 
-  #                                               filename = "pkg.start.isds.R", 
-  #                                               quiet = TRUE),
-  #                         type = "message")
-  # 
-  # packageStartupMessage(str_c(lines[-1], collapse = "\n"))
-  # return(invisible(TRUE))
+  tmp <- paste0(gsub("base$", "", system.file()), "/access.pk")
+  kpath <- normalizePath(tmp, mustWork = FALSE)
+
+  ## Write out local key to package folder if needed
+  if(!file.exists(kpath)){
+    packageStartupMessage("No access key found.
+                          Please use make_is_key() to initiate access.")
+    return(invisible(FALSE))
+  }
+
+  vpath <- normalizePath(paste0(devtools::inst("isds"), "/vault"), mustWork = FALSE)
+  options(secret.vault = vpath)
+  options(secret.key = kpath)
+
+  ghp <- Sys.getenv("GITHUB_PAT")
+  Sys.setenv(GITHUB_PAT = "")
+  on.exit(Sys.setenv(GITHUB_PAT = ghp))
+
+  lines <- capture.output(devtools::source_gist(id = "d9fbf427eb67282ca3549ea0c420945b",
+                                                filename = "pkg.start.isds.R",
+                                                quiet = TRUE),
+                          type = "message")
+
+  packageStartupMessage(str_c(lines[-1], collapse = "\n"))
+  return(invisible(TRUE))
 }
 
 # request_access <- function(){
