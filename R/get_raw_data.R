@@ -55,7 +55,7 @@ get_raw <- function(hospID = NULL){
     WHERE <- paste0(WHERE, " \nAND HOSPITAL_ID = ", hospID)
   
   ciph <- get_conn_string()
-  
+  print(ciph)
   
   # build query that's dynamic to whether a where condtion was supplied
   q0 <- paste0("[", ciph$db_args$db, "].[", ciph$db_args$tbl_cat, "].[", ciph$db_args$tbl_nam, "]")
@@ -65,7 +65,7 @@ get_raw <- function(hospID = NULL){
   cat("Running Query: \n\n", query)
   
   # Get connection object and send query for validity check
-  cn <- get_conn()
+  cn <- g4
   on.exit( odbcClose(cn) )
   
   if( odbcQuery(cn, query, 1000) != 1 ) stop("check query")
