@@ -23,7 +23,8 @@ Imports:
     RODBC,
     easydata,
     openssl,
-    devtools
+    devtools,
+    backports
 Remotes:
     hadley/rlang,
     bfatemi/easydata,
