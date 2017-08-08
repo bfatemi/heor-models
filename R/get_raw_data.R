@@ -17,9 +17,9 @@ NULL
 get_conn <- function(){
   
   # Check whether caller is on network
-  chk <- system("ping corp.intusurg.com -n 1 -w 1000", show.output.on.console = FALSE)
-  if(chk > 0) 
-    stop("ISI network not detected", call. = FALSE)
+  # chk <- system("ping corp.intusurg.com -n 1 -w 1000", show.output.on.console = FALSE)
+  # if(chk > 0) 
+  #   stop("ISI network not detected", call. = FALSE)
   
   ciph <- get_conn_string()
   
