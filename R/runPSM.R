@@ -2,12 +2,15 @@
 #'
 #' @param hospID A numeric variable representing the hospital id
 #' @param modal [DOC NEEDED]
+#' @param qDT optionally, for testing purposes you can supply the queried dataset
 #' @return [DOCUMENT RETURN VALUE]
 #' @export
 #'
 #' @import data.table
-runPSM <- function(hospID = NULL, modal = "Open"){
-  qDT <- getDataQTI(hospID = hospID)[Modality %in% c("Robotic", modal)]
+runPSM <- function(hospID = NULL, modal = "Open", qDT = NULL){
+  if(is.null(qDT)){
+    qDT <- getDataQTI(hospID = hospID)[Modality %in% c("Robotic", modal)]  
+  }
   
   if(nrow(qDT) == 0) 
     stop("No data for modality and/or hosp id", call. = FALSE)
@@ -21,8 +24,11 @@ runPSM <- function(hospID = NULL, modal = "Open"){
                 "PatientAge", 
                 "PatientCharlsonScore", 
                 "PatientGender")
-  outcomes <- c("LOSHours", 
+  outcomes <- c("LOSHours",
+                "LOSDays",
+                "SurgeryTimeMins",
                 "ORTimeMins")
+  
   
   ##
   ## Run analysis for each hospital
@@ -35,10 +41,20 @@ runPSM <- function(hospID = NULL, modal = "Open"){
       return(NULL)
     }
     
+    # update oucomes as some may be all NAs
+    outcomes <- names(which(apply(hDT[, outcomes, with=FALSE], 2, function(col) sum(!is.na(col)) > 0)))
+    
+    if(length(outcomes) == 0){
+      warning("All selected outcome variables have only NA values", call. = FALSE)
+      return(NULL)
+    }
+    
     DT <- psm_data(DT = hDT, 
                    strat_vars = strat, 
                    covariates = covars, 
                    outcome_vars = outcomes)
+    if(is.null(DT))
+      return(NULL)
     
     # get result and merge back with descriptor columns needed
     res <- get_stats(DT = DT, outcome_vars = outcomes)
@@ -62,8 +78,6 @@ runPSM <- function(hospID = NULL, modal = "Open"){
   outDT <- htable[DT, on = "HospitalID"]
   
   # change names for convenience
-  # setnames(outDT, c("CLow", "CHigh"), c("CLOW", "CHIGH"))
-  # setnames(outDT, c("T_STAT", "P_VAL"), c("TSTAT", "PVAL"))
   setnames(outDT, "PSMCount", "N")
   
   ## BEGIN TRANSFORMATION OF DATA
@@ -81,5 +95,10 @@ runPSM <- function(hospID = NULL, modal = "Open"){
                              formula = as.formula(f.expr, env), 
                              value.var = stat_cols, 
                              fill = NA)
+  
+  ## REQUEST TO CHANGE COLUMNS
+  cnams <- names(woutDT)[stringr::str_detect(names(woutDT), "_")]
+  new_nams <- apply(stringr::str_split_fixed(cnams, "_", 2)[, c(2,1)], 1, stringr::str_c, collapse = "")
+  setnames(woutDT, cnams, new_nams)
   return(woutDT)
 }

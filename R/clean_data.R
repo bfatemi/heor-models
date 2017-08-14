@@ -7,7 +7,7 @@
 #' @return A trimmed data.table
 #' @export
 clean_data <- function(rawDT){
-  
+
   cnam <- colnames(rawDT)
   expr <- substitute(which(stringr::str_detect(cnam, X)))
   pats <- c("Hospital",

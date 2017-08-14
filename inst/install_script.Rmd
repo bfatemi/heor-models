@@ -12,26 +12,9 @@ knitr::opts_chunk$set(echo = TRUE)
 ### Install Packages
 
 ```{r install, eval=FALSE}
-install.packages("curl")     # if not already installed
 install.packages("devtools") # if not already installed
-
-source("https://install-github.me/hadley/rlang")
-source("https://install-github.me/gaborcsardi/secret")
-source("https://install-github.me/bfatemi/isds")
-
 ```
 
-### Set Environment Var
-
-The system variable `USER_KEY` tells the package where the private key is located, which is associated with a public key that was used to encrypt the connection parameters to our internal db.
-
-This is how you set environment vars in the R session:
-
-```{r setenv, eval = FALSE}
-Sys.setenv(USER_KEY = "path/to/privatekey")
-```
-
-You can set this variable in the R environment, but it must be set every time a new session is created. Therefore, I would recommend setting this variable at the system level
 
 ### Load Library
 

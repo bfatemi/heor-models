@@ -1,3 +1,5 @@
+library(data.table)
+library(secret)
 
 context("Test of all major functions")
 
@@ -69,6 +71,7 @@ test_that("Local Test of user-facing getDataQTI (wrapper around get_raw and clea
     expect_gt(nrow(DT), 1)
     expect_gt(ncol(DT), 5)
     
+    
     DT <- getDataQTI(10112)
     expect_is(DT, "data.table")
     expect_gt(nrow(DT), 1)
@@ -76,6 +79,24 @@ test_that("Local Test of user-facing getDataQTI (wrapper around get_raw and clea
   }
   
 })
+
+
+
+
+test_that("CI check of clean_data and runPSM functions",{
+  skip_on_cran()
+  
+  qDT   <- clean_data(get_secret("raw_data"))[Modality %in% c("Robotic", "Open")]
+  expect_is(qDT, "data.table")
+  
+  expect_warning(resDT <- runPSM(qDT = qDT))
+  expect_is(resDT, "data.table")
+  expect_gt(nrow(resDT), 1)
+  expect_gt(ncol(resDT), 5)
+  
+})
+
+
 
 
 

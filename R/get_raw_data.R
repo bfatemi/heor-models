@@ -15,26 +15,28 @@ NULL
 #' @describeIn get_raw [DESCRIPTION OF FUNCTION NEEDED]
 #' @export
 get_conn <- function(){
-  
-  # Check whether caller is on network
-  # chk <- system("ping corp.intusurg.com -n 1 -w 1000", show.output.on.console = FALSE)
-  # if(chk > 0) 
-  #   stop("ISI network not detected", call. = FALSE)
-  
+
   ciph <- get_conn_string()
   
   # Get connection object and start query text
   txt <- str_c(names(ciph$cn_args), "=", ciph$cn_args, collapse = ";")
-  print(txt)
+  cat(paste0("\n\nConnection String:\n", txt, "\n\n"))
   conn <- odbcDriverConnect( txt )
   return(conn)
 }
+
 
 #' @describeIn get_raw [DESCRIPTION OF FUNCTION NEEDED]
 #' @export
 get_conn_string <- function(){
   kpath <- getOption("secret.key")
   vpath <- getOption("secret.vault")
+  
+  # do this for continuous integration testing. Travis is configured on backend
+  if(kpath == "")
+    kpath <- NULL
+  if(vpath == "")
+    vpath <- NULL
   
   # Get encrypted connection string arguments
   ciph <- get_secret("is_connect", key = read_key(kpath), vault = vpath)
@@ -54,7 +56,7 @@ get_raw <- function(hospID = NULL){
   
   # If hospital id provided, add condition to WHERE
   if( !is.null(hospID) )
-    WHERE <- paste0(WHERE, " \nAND HOSPITAL_ID = ", hospID)
+    WHERE <- paste0(WHERE, " \nAND HospitalID = '", hospID, "'")
   
   ciph <- get_conn_string()
   # print(ciph)
@@ -64,7 +66,7 @@ get_raw <- function(hospID = NULL){
   q1 <- paste0("SELECT * FROM ", q0)
   query <- str_c(q1, "\nWHERE ", WHERE)
   
-  cat("Running Query: \n\n", query)
+  cat(paste0("Running Query: \n\n", query))
   
   # Get connection object and send query for validity check
   cn <- get_conn()

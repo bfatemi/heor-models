@@ -82,14 +82,22 @@ psm_data <- function(DT = NULL,
           FUN = function(j) !any(j))
     ]
   
+  if(nrow(psmDT) == 0){
+    warning("No non-na observations in dataset (all rows contain NA. Check outcome measure)", call. = FALSE)
+    return(NULL)
+  }
+  
   psmDT[, c("CID") := .GRP, c(strat_vars)] # stratify and label cohorts
   setkeyv(psmDT, "CID")
   
   # count patients for each modality and get all modality pairs that have at least 10
   cDT <- psmDT[CID %in% psmDT[, .N >= 10, c("CID", treat_var)][, sum(V1)>1, "CID"][, CID[which(V1)]]]
   
-  if(nrow(cDT) == 0)
-    stop("no modality pairs with at least 10 patients each", call. = FALSE)
+  if(nrow(cDT) == 0){
+    warning("no modality pairs with at least 10 patients each", call. = FALSE)
+    return(NULL)
+  }
+  
   
   cDT[, CID := .GRP, strat_vars] # Regroup id since many were filtered
   setkey(cDT, CID)
@@ -100,7 +108,6 @@ psm_data <- function(DT = NULL,
   ll <- split( cDT, cDT$CID )
   
   mList <- lapply(ll, function(mDT){
-    # mDT<-ll[[1]]
     ## TEST VARIATION WITH COVARS. IF NONE THEN DROP. REPLACE WITH PCA SOON
     new_covars <- unlist(lapply(covariates, function(i) i[length(unique(mDT[!is.na(get(i)), get(i)])) > 1]))
     control <- mDT[, .N, treat_var][which.max(N), get(treat_var)]
@@ -139,5 +146,4 @@ psm_data <- function(DT = NULL,
   resDT <- rbindlist(mList, fill = TRUE)
   setkeyv(resDT, c("CID", treat_var))
   return(resDT)
-  
 }
