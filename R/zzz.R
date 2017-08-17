@@ -10,7 +10,6 @@
   }
   
   vpath <- normalizePath(paste0(devtools::inst("isds"), "/vault"), mustWork = FALSE)
-  vpath <- normalizePath(paste0(devtools::inst("isds"), "/vault"), mustWork = FALSE)
   options(secret.vault = vpath)
   options(secret.key = kpath)
   return(invisible(TRUE))

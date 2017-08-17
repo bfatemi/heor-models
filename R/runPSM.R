@@ -71,6 +71,7 @@ runPSM <- function(hospID = NULL, modal = "Open", qDT = NULL){
     return(res[dtable])
   })
   
+  
   # Bind together all results for individual hospitals, then join to add hosp name
   DT <- rbindlist(psmDataList)
   htable <- qDT[, .N, c("HospitalID", "HospitalName")][, !"N"]
@@ -81,7 +82,7 @@ runPSM <- function(hospID = NULL, modal = "Open", qDT = NULL){
   setnames(outDT, "PSMCount", "N")
   
   ## BEGIN TRANSFORMATION OF DATA
-  stat_cols <- c("N", "Mean", "Median", "STD", "Var", "TStat", "PValue", "CLow", "CHigh")
+  stat_cols <- c("Mean", "Median", "STD", "Var", "TStat", "PValue", "CLow", "CHigh")
   
   
   env <- caller_env()
@@ -100,5 +101,7 @@ runPSM <- function(hospID = NULL, modal = "Open", qDT = NULL){
   cnams <- names(woutDT)[stringr::str_detect(names(woutDT), "_")]
   new_nams <- apply(stringr::str_split_fixed(cnams, "_", 2)[, c(2,1)], 1, stringr::str_c, collapse = "")
   setnames(woutDT, cnams, new_nams)
-  return(woutDT)
+  
+  setnames(woutDT, "N", "PSMCount")
+  return(woutDT[])
 }
