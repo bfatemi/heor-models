@@ -11,6 +11,8 @@
 #' 
 #' @import stats
 #' @import data.table
+#' @importFrom stringr str_detect
+#' @importFrom MatchIt get_matches matchit
 #' 
 #' @name PSM_Analysis
 NULL
@@ -93,7 +95,7 @@ psm_data <- function(DT = NULL,
   # count patients for each modality and get all modality pairs that have at least 10
   cDT <- psmDT[CID %in% psmDT[, .N >= 10, c("CID", treat_var)][, sum(V1)>1, "CID"][, CID[which(V1)]]]
   
-  if(nrow(cDT) == 0){
+  if(nrow(cDT) == 0 | !is.data.table(cDT)){
     warning("no modality pairs with at least 10 patients each", call. = FALSE)
     return(NULL)
   }
@@ -135,8 +137,7 @@ psm_data <- function(DT = NULL,
         CID = mDT[, unique(CID)],
         as.data.table(MatchIt::get_matches(ml.psm, cleanDT))
       )
-      
-      
+
     }, error = function(c){
       if(stringr::str_detect(c$message, "No units were matched"))
         return(NULL)
@@ -144,6 +145,6 @@ psm_data <- function(DT = NULL,
   })
   
   resDT <- rbindlist(mList, fill = TRUE)
-  # setkeyv(resDT, c("CID", treat_var))
+  setkeyv(resDT, c("CID", treat_var))
   return(resDT)
 }
