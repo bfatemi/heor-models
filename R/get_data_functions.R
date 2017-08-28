@@ -110,7 +110,7 @@ getRawData <- function(){
                                                    believeNRows = FALSE))
     
   }, error = function(c){
-    stop("query failed in get_raw", call. = FALSE)
+    stop("query failed in getRawData", call. = FALSE)
   })
   return(rawDT)
 }
