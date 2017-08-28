@@ -144,6 +144,6 @@ psm_data <- function(DT = NULL,
   })
   
   resDT <- rbindlist(mList, fill = TRUE)
-  setkeyv(resDT, c("CID", treat_var))
+  # setkeyv(resDT, c("CID", treat_var))
   return(resDT)
 }
