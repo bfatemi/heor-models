@@ -4,14 +4,10 @@
 \alias{runPSM}
 \title{Run Full Analysis with PSM Matching}
 \usage{
-runPSM(hospID = NULL, modal = "Open", qDT = NULL)
+runPSM(hospID = NULL)
 }
 \arguments{
 \item{hospID}{A numeric variable representing the hospital id}
-
-\item{modal}{[DOC NEEDED]}
-
-\item{qDT}{optionally, for testing purposes you can supply the queried dataset}
 }
 \value{
 [DOCUMENT RETURN VALUE]
