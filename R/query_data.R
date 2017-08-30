@@ -8,11 +8,11 @@
 #' @importFrom stringr str_c
 #' @importFrom RODBC odbcClose sqlColumns odbcQuery odbcFetchRows
 #' 
-#' @name get_data
+#' @name query_data
 NULL
 
 
-#' @describeIn get_data Returns raw data with minor filtering on the server for efficiency
+#' @describeIn query_data Returns raw data with minor filtering on the server for efficiency
 #' @export
 getDataQTI <- function(hospID = NULL, cols = "*"){
   
@@ -74,7 +74,7 @@ getDataQTI <- function(hospID = NULL, cols = "*"){
 
 
 
-#' @describeIn get_data Returns raw data with no filtering or cleaning
+#' @describeIn query_data Returns raw data with no filtering or cleaning
 #' @export
 getRawData <- function(){
   

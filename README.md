@@ -4,8 +4,23 @@
 
 ## Example
 
-This is a basic example which shows you how to solve a common problem:
+Run entire PSM workflow, for every available hospital, or a given hospital ID:
 
 ```R
-...
+
+runPSM()               # all hospitals
+runPSM(hospID = 11111) # for one hospital
+
+```
+
+Run PSM workflow in modules:
+
+
+```R
+
+getRawData() # Get raw data
+getDataQTI() # Get starting dataset (cleaned and filtered)
+
+
+
 ```

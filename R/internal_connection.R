@@ -11,14 +11,12 @@
 NULL
 
 #' @describeIn conn_functions Internal function that builds the connection string using 
-#' @export
 build_conn_string <- function(cnList){
   cnString <- str_c(names(cnList$cn_args), "=", cnList$cn_args, collapse = ";")
   return(cnString)
 }
 
 #' @describeIn conn_functions Internal function that decrypts and returns the connection params
-#' @export
 conn_params <- function(){
   path_key   <- getOption("secret.key")
   path_vault <- getOption("secret.vault")
@@ -50,7 +48,6 @@ conn_params <- function(){
 
 
 #' @describeIn conn_functions Internal function that returns the connection object
-#' @export
 get_conn_object <- function(cnString){
   tryCatch(odbcDriverConnect( cnString ), error = function(c) stop("ODBC connection", call. = FALSE))
 }
