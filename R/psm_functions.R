@@ -91,11 +91,11 @@ runPSM <- function(hospID = NULL){
     res <- getStats(DT = DT, outcome_vars = outcomes)
     
     dtable <- DT[, list(PSMCount = .N), c("CID", 
-                                       "Modality",
-                                       "HospitalID", 
-                                       "ProcedurePrimary", 
-                                       "BenignMalignant", 
-                                       "InpatientOutpatient")]
+                                          "Modality",
+                                          "HospitalID", 
+                                          "ProcedurePrimary", 
+                                          "BenignMalignant", 
+                                          "InpatientOutpatient")]
     
     setkeyv(dtable, c("CID", "PSMCount", "Modality"))
     setkeyv(res,    c("CID", "PSMCount", "Modality"))
