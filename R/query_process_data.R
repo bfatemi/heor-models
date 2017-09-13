@@ -3,8 +3,11 @@
 #' @param hospID [DESCRIPTION OF ARGUMENT NEEDED]
 #' @param cols columns to limit query to for minor efficiency gains
 #' 
-#' @return [DESCRIPTION OF ARGUMENT NEEDED]
+#' @param DT Data for processing after query function is run
+#' @param modal_A Modality 1 (defaults to Open)
+#' @param modal_B Modality 2 (defaults to Robotic)
 #' 
+#' @import data.table
 #' @importFrom stringr str_c
 #' @importFrom RODBC odbcClose sqlColumns odbcQuery odbcFetchRows
 #' 
@@ -16,7 +19,7 @@ NULL
 #' @export
 getDataQTI <- function(hospID = NULL, cols = "*"){
   
-  # ESTABLISH CONNECTION AND BUILD QUERY
+  # GET CONNECTION PARAMETERS AND CREATE CONNECT OBJECT
   cnParams <- conn_params()
   cnString <- build_conn_string(cnParams)
   cnObject <- get_conn_object(cnString)
@@ -24,7 +27,7 @@ getDataQTI <- function(hospID = NULL, cols = "*"){
   # ON EXIT, CLOSE CONNECTION
   on.exit( odbcClose(cnObject) )
   
-  # BUILD QUERY COMPONENTS
+  # USE CONNECT OBJECT TO BUILD QUERY COMPONENTS
   db  <- cnParams$db_args$db
   cat <- cnParams$db_args$tbl_cat
   tbl <- cnParams$db_args$tbl_nam
@@ -44,6 +47,7 @@ getDataQTI <- function(hospID = NULL, cols = "*"){
     WHERE <- paste0(WHERE, " \nAND HospitalID = '", hospID, "'")
   }
   
+  # CONSTRUCT QUERY WITH COMPONENTS ABOVE
   query <- paste0("SELECT ", 
                   paste0(cols, collapse = ",\n\t"), 
                   "\nFROM ", "[", db, "].[", cat, "].[", tbl, "]", 
@@ -66,8 +70,25 @@ getDataQTI <- function(hospID = NULL, cols = "*"){
                                 believeNRows = FALSE))
     
   }, error = function(c){
-    stop("query failed in get_raw", call. = FALSE)
+    stop("query failed in getDataQTI", call. = FALSE)
   })
+  
+  # CLEAN DATA AND SET CORRECT COLUMN CLASSES
+  num_cols <- c("PatientBMI", "PatientAge", "LOSDays", "ORTimeMins")
+  fac_cols <- c("Modality", "PatientCharlsonScore", "PatientGender", "InpatientOutpatient", "BenignMalignant")
+  
+  for(ncol in num_cols)
+    set(resDT, i=NULL, j = ncol, value = resDT[, as.numeric(get(ncol))])
+  for(fcol in fac_cols)
+    set(resDT, i=NULL, j = fcol, value = resDT[, as.factor(get(fcol))])
+  
+  if(nrow(resDT) == 0) 
+    stop("No data", call. = FALSE)
+  
+  # CHANGE COLUMN NAMES FOR READABILITY
+  setnames(resDT, "PatientIDDeidentified", "PatientID")
+  
+  # RETURN QUERIED AND CLEANED PSM DATA
   return(resDT)
 }
 
@@ -113,5 +134,31 @@ getRawData <- function(){
     stop("query failed in getRawData", call. = FALSE)
   })
   return(rawDT)
+}
+
+
+
+#' @describeIn query_data Function that splits a data set by hospital, and returns a list of hospitals that have enough 
+#'    patients to proceed with the PSM analysis
+#' @export
+split_check_hosp <- function(DT, modal_A = "Open", modal_B = "Robotic"){
+  
+  # SPLIT BY HOSPITAL - NOTE DATA NEEDS A COLUMN CALLED HospitalID
+  hospList <- split(DT, DT[, get("HospitalID")])
+  
+  # CHECK EACH HOSPITAL FOR A MINIMUM OF 10 PATIENTS FOR BOTH MODALITIES
+  validBools <- sapply(hospList, function(hdt){
+    x <- table(hdt$Modality)
+    bool <- x[[modal_A]] > 10 & x[[modal_B]] > 10
+    return(bool)
+  })
+  
+  # GET NAMES OF HOSPITALS AND DROP WITH WARNING
+  dropHosp <- names(which(!validBools))
+  
+  if(length(dropHosp) > 0)
+    warning("Not enough data for both modalities for hospitals: ", paste0(dropHosp, collapse = ", "))
+  
+  return(hospList[ which(validBools) ])
 }
 

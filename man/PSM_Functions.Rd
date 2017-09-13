@@ -2,12 +2,18 @@
 % Please edit documentation in R/psm_functions.R
 \name{PSM_Functions}
 \alias{PSM_Functions}
+\alias{caller_env}
 \alias{runPSM}
+\alias{get_result_psm}
 \alias{getMatchedData}
 \alias{getStats}
 \title{Run Full Analysis with PSM Matching}
 \usage{
+caller_env(n = 1)
+
 runPSM(hospID = NULL)
+
+get_result_psm(hDT, idcols, strat, covars, outcomes)
 
 getMatchedData(DT = NULL, strat_vars = NULL, covariates = NULL,
   outcome_vars = NULL)
@@ -15,7 +21,19 @@ getMatchedData(DT = NULL, strat_vars = NULL, covariates = NULL,
 getStats(DT, outcome_vars)
 }
 \arguments{
+\item{n}{internal argument for helper \code{caller_env}}
+
 \item{hospID}{A numeric variable representing the hospital id}
+
+\item{hDT}{Hospital data}
+
+\item{idcols}{Columns to keep as IDs}
+
+\item{strat}{Columns to stratify the hospital data before PSM}
+
+\item{covars}{Covariates to use to calculate the propensity score to match on}
+
+\item{outcomes}{Outcome column variables to run statistics for across groups matched with PSM}
 
 \item{DT}{[ARGUMENT DEFINITION NEEDED]}
 
@@ -31,7 +49,13 @@ an interactive execution of this PSM analysis
 }
 \section{Functions}{
 \itemize{
+\item \code{caller_env}: Helper function for determining the parent caller (from package:rlang)
+
 \item \code{runPSM}: Execute entire workflow
+
+\item \code{get_result_psm}: Function that takes one hospital's data and appropriate argument to execute 
+the matching (using internal function \code{getMatchedData}), then runs statistics across matched 
+groups (using internal function \code{getStats})
 
 \item \code{getMatchedData}: Takes in data from getDataQTI and returns a list of data.tables
 with each list element being a PSM matched dataset containing

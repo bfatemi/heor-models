@@ -8,24 +8,33 @@
 #' @param strat_vars VARS TO STRATIFY THE DATA BY (PER REQUIREMENTS)
 #' @param covariates [ARGUMENT DEFINITION NEEDED]
 #' @param outcome_vars [ARGUMENT DEFINITION NEEDED]
+#' 
+#' @param hDT Hospital data
+#' @param idcols Columns to keep as IDs
+#' @param strat Columns to stratify the hospital data before PSM
+#' @param covars Covariates to use to calculate the propensity score to match on
+#' @param outcomes Outcome column variables to run statistics for across groups matched with PSM
+#' 
+#' @param n internal argument for helper \code{caller_env}
 #'
 #' @import RODBC
 #' @import stats
 #' @import data.table
+#' 
 #' @importFrom stringr str_split_fixed str_detect str_c
 #' @importFrom MatchIt get_matches matchit
 #' 
 #' @name PSM_Functions
 NULL
 
+#' @describeIn PSM_Functions Helper function for determining the parent caller (from package:rlang)
+caller_env <- function (n = 1) parent.frame(n + 1)
 
 #' @describeIn PSM_Functions Execute entire workflow
 #' @export
 runPSM <- function(hospID = NULL){
-  
-  ##
-  ## Query and clean data
-  ##
+
+  # QUERY AND CLEAN DATA
   idcols   <- c("HospitalID", "HospitalName", "PatientIDDeidentified", "Modality")
   strat    <- c("ProcedurePrimary", "BenignMalignant", "InpatientOutpatient")
   covars   <- c("PatientBMI", "PatientAge", "PatientCharlsonScore", "PatientGender")
@@ -33,111 +42,56 @@ runPSM <- function(hospID = NULL){
   
   DT <- getDataQTI(hospID, c(idcols, strat, covars, outcomes))
   
-  # set appropriate col classes
-  num_cols <- c("PatientBMI", "PatientAge", "LOSDays", "ORTimeMins")
-  fac_cols <- c("Modality", "PatientCharlsonScore", "PatientGender", "InpatientOutpatient", "BenignMalignant")
+  # SPLIT AND DROP HOSPITALS WITH FEWER THAN 10 CASES FOR EACH MODAL
+  psmInput <- split_check_hosp(DT, modal_A = "Open", modal_B = "Robotic")
   
-  for(n in num_cols)
-    set(DT, i=NULL, j = n, value = DT[, as.numeric(get(n))])
-  for(f in fac_cols)
-    set(DT, i=NULL, j = f, value = DT[, as.factor(get(f))])
+  # EXEC ANALYSIS FOR EACH HOSPITAL
+  psmDataList <- lapply(psmInput, get_result_psm, idcols, strat, covars, outcomes)
   
-  if(nrow(DT) == 0) 
-    stop("No data", call. = FALSE)
-  
-  setnames(DT, "PatientIDDeidentified", "PatientID")
-  
-  
-  ##
-  ## DROP HOSPITALS WITH FEWER THAN 10 OPEN AND 10 ROBOTIC CASES
-  ##
-  
-  hospList <- split(DT, DT[, get("HospitalID")])
-  
-  validHosp <- sapply(hospList, function(hdt){
-    x <- table(hdt$Modality)
-    return(x[['Open']] > 10 & x[['Robotic']] > 10)
-  })
-  
-  dropHosp <- names(which(!validHosp))
-  if(length(dropHosp) > 0)
-    warning("Not enough data for both modalities for hospitals: ", paste0(dropHosp, collapse = ", "))
-  
-  psmInput <- hospList[which(validHosp)]
-  
-  
-  ##
-  ## Run analysis for each hospital
-  ##
-  psmDataList <- lapply(psmInput, function(hDT){
-    
-    # update oucomes as some may be all NAs
-    outcomes <- names(which(apply(hDT[, outcomes, with=FALSE], 2, function(col) sum(!is.na(col)) > 0)))
-    
-    if(length(outcomes) == 0){
-      warning("All selected outcome variables have only NA values", call. = FALSE)
-      return(NULL)
-    }
-    
-    DT <- getMatchedData(DT = hDT, 
-                         strat_vars = strat, 
-                         covariates = covars, 
-                         outcome_vars = outcomes)
-    
-    if(is.null(DT))
-      return(NULL)
-    
-    # get result and merge back with descriptor columns needed
-    res <- getStats(DT = DT, outcome_vars = outcomes)
-    
-    dtable <- DT[, list(PSMCount = .N), c("CID", 
-                                          "Modality",
-                                          "HospitalID", 
-                                          "ProcedurePrimary", 
-                                          "BenignMalignant", 
-                                          "InpatientOutpatient")]
-    
-    setkeyv(dtable, c("CID", "PSMCount", "Modality"))
-    setkeyv(res,    c("CID", "PSMCount", "Modality"))
-    return(res[dtable])
-  })
-  
-  
-  # Bind together all results for individual hospitals, then join to add hosp name
+  # BIND ALL HOSP RESULTS TOGETHER AND JOIN TO BRING IN HOSP NAME
   nDT    <- rbindlist(psmDataList)
   htable <- DT[, .N, c("HospitalID", "HospitalName")][, !"N"]
   outDT  <- htable[nDT, on = "HospitalID"]
   
-  ##
-  ## TRANSFORM DATA PER REQUIREMENTS
-  ##
+  # TRANSFORM DATA PER REQUIREMENTS (NOT OPTIMAL FOR FURTHER ANALYSIS OR VISUALIZATION)
+  return( transformResult(outDT) )
+  
+}
+
+#' @describeIn PSM_Functions Function that takes one hospital's data and appropriate argument to execute 
+#'   the matching (using internal function \code{getMatchedData}), then runs statistics across matched 
+#'   groups (using internal function \code{getStats})
+#' @export
+get_result_psm <- function(hDT, idcols, strat, covars, outcomes){
+  
+  # update oucomes as some may be all NAs
+  outcomes <- names( which(apply( hDT[, outcomes, with=FALSE], 2, function(col) sum(!is.na(col)) > 0 )) )
+  
+  if(length(outcomes) == 0){
+    warning("All selected outcome variables have only NA values", call. = FALSE)
+    return(NULL)
+  }
+  
+  DT <- getMatchedData(DT = hDT, 
+                       strat_vars = strat, 
+                       covariates = covars, 
+                       outcome_vars = outcomes)
+  
+  if(is.null(DT)) 
+    return(NULL)
+  
+  # get result and merge back with descriptor columns needed
+  res <- getStats(DT = DT, outcome_vars = outcomes)
+  
+  grpCols <- c("CID", "Modality", "HospitalID", "ProcedurePrimary", "BenignMalignant","InpatientOutpatient")
+  dtab <- DT[, list(PSMCount = .N), grpCols]
   
   
-  setnames(outDT, "PSMCount", "N") # change names for convenience
+  keyCols <- c("CID", "PSMCount", "Modality")
+  setkeyv(dtab, keyCols)
+  setkeyv(res,  keyCols)
   
-  ## BEGIN TRANSFORMATION OF DATA
-  stat_cols <- c("Mean", "Median", "STD", "Var", "TStat", "PValue", "CLow", "CHigh")
-  
-  
-  env <- caller_env()
-  y <- paste0(colnames(outDT)[ !colnames(outDT) %in% c(stat_cols, "outcome") ], collapse = " + ")
-  x <- "outcome"
-  f.expr <- paste0(y, " ~ ", x)
-  
-  
-  woutDT <- dcast.data.table(data = outDT, 
-                             sep = "_", 
-                             formula = as.formula(f.expr, env), 
-                             value.var = stat_cols, 
-                             fill = NA)
-  
-  ## REQUEST TO CHANGE COLUMNS
-  cnams <- names(woutDT)[str_detect(names(woutDT), "_")]
-  new_nams <- apply(str_split_fixed(cnams, "_", 2)[, c(2,1)], 1, str_c, collapse = "")
-  
-  setnames(woutDT, cnams, new_nams)
-  setnames(woutDT, "N", "PSMCount") # quick fix to change back name per requirement
-  return(woutDT[])
+  return(res[dtab])
 }
 
 
@@ -149,47 +103,34 @@ getMatchedData <- function(DT = NULL,
                            covariates = NULL, 
                            outcome_vars = NULL){
   
-  ##
   ## TO-DO: TURN WARNINGS TO ERRORS AND IMPLEMENT TRYCATCH IN CALLER
-  ##
   
-  ##
-  ## TRIM THE DATASET
-  ##
+  # TRIM THE DATASET
   treat_var <- c("Modality")                  # hardcode for now
   inc_vars  <- c("HospitalID", "PatientID")   # include additional in output
   keepCols  <- c(inc_vars, outcome_vars, strat_vars, treat_var, covariates)
   
   trimDT <- DT[, keepCols, with=FALSE]
   
-  ##
-  ## PSM NEEDS COMPLETE DATA - REMOVE ANY ROWS WITH NA IN THESE COLUMNS
-  ##
+  # PSM NEEDS COMPLETE DATA - REMOVE ANY ROWS WITH NA IN THESE COLUMNS
   psmDT <- trimDT[
     apply(X = trimDT[, lapply(.SD, FUN = function(col) is.na(col))], 
           MARGIN = 1, 
           FUN = function(j) !any(j))
     ]
   
-  ##
-  ## DATA CHECK AFTER NA ROW CLEANING
-  ##
+  # DATA CHECK AFTER NA ROW CLEANING
   if(nrow(psmDT) == 0){
     warning("No non-na observations in dataset (all rows contain NA. Check outcome measure)", call. = FALSE)
     return(NULL)
   }
   
-  ##
-  ## STRATIFY THE DATA BASED ON REQUIREMENTS
-  ##
+  # STRATIFY THE DATA BASED ON REQUIREMENTS
   psmDT[, c("CID") := .GRP, c(strat_vars)]
   setkeyv(psmDT, "CID")
   
-  
-  ##
-  ## DATA CHECK: ENSURE BOTH MODALITIES, FOR EVERY STRATIFIED GROUP (COHORT), HAS
-  ##             AT LEAST 10 PATIENTS
-  ##
+  # DATA CHECK: ENSURE BOTH MODALITIES, FOR EVERY STRATIFIED GROUP (COHORT), HAS
+  #             AT LEAST 10 PATIENTS
   cDT <- psmDT[get("CID") %in% psmDT[, .N >= 10, c("CID", treat_var)][, sum(get("V1"))>1, "CID"][, get("CID")[which(get("V1"))]]]
   
   if(nrow(cDT) == 0 | !is.data.table(cDT)){
@@ -202,69 +143,46 @@ getMatchedData <- function(DT = NULL,
   setkeyv(cDT, c("CID"))
   cDT[, c("CID") := as.factor(get("CID"))] # set as factors
   
-  
-  ##
-  ## SPLIT INTO LISTS CONTAINING DATA FOR EACH STRATIFIED GROUP
-  ##  AND RUN PSM ANALYSIS ON EACH GROUP
-  ##
+  # SPLIT INTO LISTS CONTAINING DATA FOR EACH STRATIFIED GROUP AND RUN PSM ANALYSIS ON EACH GROUP
   Sll <- split( cDT, cDT$CID )
   
   mList <- lapply(Sll, function(mDT){
     
-    ##
-    ## TEST VARIATION WITH COVARS. IF NONE THEN DROP. REPLACE WITH PCA SOON
-    ##
+    # TEST VARIATION WITH COVARS. IF NONE THEN DROP. REPLACE WITH PCA SOON
     getValidCovars <- function(i) i[length(unique(mDT[!is.na(get(i)), get(i)])) > 1]
     new_covars     <- unlist(lapply(covariates, getValidCovars))
-    
-    ##
-    ## SET MODALITY WITH MORE OBSERVATIONS AS THE CONTROL GROUP
-    ##
+
+    # SET MODALITY WITH MORE OBSERVATIONS AS THE CONTROL GROUP
     control  <- mDT[, .N, treat_var][which.max(get("N")), get(treat_var)]
     
-    ##
-    ## TRIM DATA BASED ON A SUBSET OF THE COVARS (THOSE THAT VARY)
-    ##
+    # TRIM DATA BASED ON A SUBSET OF THE COVARS (THOSE THAT VARY)
     keepCols <- c(inc_vars, outcome_vars, strat_vars, treat_var, new_covars)
     psdata   <- mDT[, keepCols, with = FALSE]
     
-    ##
-    ## LABEL THE MODALITY THAT'S NOT THE CONTROL WITH A BOOLEAN FLAG
-    ##
+    # LABEL THE MODALITY THAT'S NOT THE CONTROL WITH A BOOLEAN FLAG
     psdata[, c("IsTreatment") := get(treat_var) != control]
     
-    
-    ##
-    ## DATA CHECK: NOTE THIS IS POTENTIALLY REDUNDANT SINCE WE DID AN EARLIER CHECK
-    ##
+    # DATA CHECK: NOTE THIS IS POTENTIALLY REDUNDANT SINCE WE DID AN EARLIER CHECK
     cleanDT <- psdata[ !Reduce(`|`, lapply(psdata, function(i) is.na(i))) ]
     
-    
-    ##
-    ## EXECUTE PROPENSITY SCORE MATCHING AND RETURN MATCHED DATASET
-    ##
+    # EXECUTE PROPENSITY SCORE MATCHING AND RETURN MATCHED DATASET
     env <- caller_env()
+    
     matched_data <- tryCatch({
-      
-      ##
-      ## WITHIN THIS STRATIFIED GROUP, MATCH BASED ON PROBABILITY THAT 
-      ## COVARIATES PREDICT TREATMENT GROUP LABEL
-      ##
+    
+      # WITHIN THIS STRATIFIED GROUP, MATCH BASED ON PROBABILITY THAT 
+      # COVARIATES PREDICT TREATMENT GROUP LABEL
       f.expr <- paste0("IsTreatment ~ ", paste0(new_covars, collapse = " + "))
       
-      ##
-      ## SPECIFY NEAREST NEIGHBOR MATCHING ALGORITHM 
-      ##
+      # SPECIFY NEAREST NEIGHBOR MATCHING ALGORITHM
       ml.psm <- MatchIt::matchit(data = cleanDT, 
                                  formula = as.formula(f.expr, env),
                                  method = "nearest", 
                                  ratio = 1, 
                                  distance = "logit")
       
-      ##
-      ## GET MATCHES AND APPEND THE COHORT ID AS AN ENTIRE COLUMN FOR WHEN WE 
-      ## ROWBIND ALL THE RESULTS IN THE FINAL STEP, WE CAN PRESERVE GROUPING ID
-      ##
+      # GET MATCHES AND APPEND THE COHORT ID AS AN ENTIRE COLUMN FOR WHEN WE 
+      # ROWBIND ALL THE RESULTS IN THE FINAL STEP, WE CAN PRESERVE GROUPING ID
       cbind(
         CID = mDT[, unique(get("CID"))],
         as.data.table(MatchIt::get_matches(ml.psm, cleanDT))
@@ -272,17 +190,13 @@ getMatchedData <- function(DT = NULL,
       
     }, error = function(c){
       
-      ##
-      ## IF NO UNITS WHERE MATCHED WITHIN THIS STRATIFIED GROUP, THEN RETURN NULL
-      ##
+      # IF NO UNITS WHERE MATCHED WITHIN THIS STRATIFIED GROUP, THEN RETURN NULL
       if(stringr::str_detect(c$message, "No units were matched"))
         return(NULL)
     })
   })
   
-  ##
-  ## BIND THE RESULTS AND SET THE KEY FOR ORDERING (READABILITY)
-  ##
+  # BIND THE RESULTS AND SET THE KEY FOR ORDERING (READABILITY)
   resDT <- rbindlist(mList, fill = TRUE)
   setkeyv(resDT, c("CID", treat_var))
   return(resDT)
