@@ -1,6 +1,6 @@
 Package: isds
 Title: Intuitive Surgical Data Science Toolkit
-Version: 0.0.0.9000
+Version: 1.0.0.0
 Authors@R: person("Bobby", "Fatemi", email = "Bobby.Fatemi@intusurg.com", role = c("aut", "cre"))
 Description: [DESCRIPTION NEEDED].
 Depends: R (>= 3.3.2)
