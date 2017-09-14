@@ -8,7 +8,6 @@
 #' @param strat_vars VARS TO STRATIFY THE DATA BY (PER REQUIREMENTS)
 #' @param covariates [ARGUMENT DEFINITION NEEDED]
 #' @param outcome_vars [ARGUMENT DEFINITION NEEDED]
-#' 
 #' @param hDT Hospital data
 #' @param idcols Columns to keep as IDs
 #' @param strat Columns to stratify the hospital data before PSM
