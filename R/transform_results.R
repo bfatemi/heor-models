@@ -10,16 +10,15 @@
 #' 
 #' @export
 transformResult <- function(outDT){
-  ##
-  ## TRANSFORM DATA PER REQUIREMENTS
-  ##
-  setnames(outDT, "PSMCount", "N") # change names for convenience
   
-  ## BEGIN TRANSFORMATION OF DATA
+  # change names for convenience
+  setnames(outDT, "PSMCount", "N") 
+  
+
   stat_cols <- c("Mean", "Median", "STD", "Var", "TStat", "PValue", "CLow", "CHigh")
   
-  
   env <- caller_env()
+  
   y <- paste0(colnames(outDT)[ !colnames(outDT) %in% c(stat_cols, "outcome") ], collapse = " + ")
   x <- "outcome"
   f.expr <- paste0(y, " ~ ", x)
