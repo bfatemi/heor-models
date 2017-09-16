@@ -9,20 +9,24 @@
 \usage{
 caller_env(n = 1)
 
-runPSM(hospID = NULL)
+runPSM(hospID = NULL, verbose = TRUE, wide = TRUE)
 
-run_match_stats(hospDT, idcols, strat, covars, outcomes)
+run_match_stats(hospDT, idcols, stratby, covars, outcomes, match_var)
 }
 \arguments{
 \item{n}{internal argument for helper \code{caller_env}}
 
 \item{hospID}{A numeric variable representing the hospital id}
 
+\item{verbose}{A boolean indicating whether to print information about the connection and query being executed}
+
+\item{wide}{A boolean indicating whether the data should be tranformed (default is TRUE per requirements)}
+
 \item{hospDT}{Hospital data}
 
 \item{idcols}{Columns to keep as IDs}
 
-\item{strat}{Columns to stratify the hospital data before PSM}
+\item{stratby}{Columns to stratify the hospital data before PSM}
 
 \item{covars}{Covariates to use to calculate the propensity score to match on}
 

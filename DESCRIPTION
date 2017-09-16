@@ -9,7 +9,9 @@ Encoding: UTF-8
 LazyData: true
 Suggests:
     covr,
-    testthat
+    testthat,
+    knitr,
+    rmarkdown
 RoxygenNote: 6.0.1
 Imports:
     data.table,
@@ -31,3 +33,4 @@ Remotes:
     gaborcsardi/secret
 URL: https://github.com/bfatemi/isds
 BugReports: https://github.com/bfatemi/isds/issues
+VignetteBuilder: knitr

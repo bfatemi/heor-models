@@ -7,16 +7,18 @@
 \alias{split_check_hosp}
 \title{Internal Data Query Function}
 \usage{
-getDataQTI(hospID = NULL, cols = "*")
+getDataQTI(hospID = NULL, cols = "*", verbose = TRUE)
 
 getRawData()
 
 split_check_hosp(DT, modal_A = "Open", modal_B = "Robotic")
 }
 \arguments{
-\item{hospID}{[DESCRIPTION OF ARGUMENT NEEDED]}
+\item{hospID}{Internal hospital ID to get data for a specific customer}
 
 \item{cols}{columns to limit query to for minor efficiency gains}
+
+\item{verbose}{A boolean indicating whether to print information about the connection and query being executed}
 
 \item{DT}{Data for processing after query function is run}
 

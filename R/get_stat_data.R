@@ -1,7 +1,8 @@
 #' Run Stats Across Groups
 #' 
-#' @param DT Data that contains a column representing the outcome variables and contains columns CID and Modality for grouping
-#' @param outcome_vars [ARGUMENT DEFINITION NEEDED]
+#' @param matchDT Data that contains a column representing the outcome variables and contains columns CID and Modality for grouping
+#' @param outcomes [ARGUMENT DEFINITION NEEDED]
+#' @param groupby Column variables to group the data before running our desired statistics
 #' 
 #' @import stats
 #' 
@@ -12,9 +13,10 @@ NULL
 #' runs statistical summary functions and performs a paired t-test across the psm matched
 #' groups
 #' @export
-getStatData <- function(DT, outcome_vars){
+getStatData <- function(matchDT, outcomes, groupby){
   
-  rbindlist(lapply(outcome_vars, function(o){
+  
+  statSummary <- function(o){
     
     FUNS <- list(
       PSMCount = length,
@@ -24,7 +26,7 @@ getStatData <- function(DT, outcome_vars){
       Var       = var
     )
     
-    sList <- split(DT, by = c("CID", "Modality"), flatten = FALSE, drop = TRUE)
+    sList <- split(matchDT, by = c("CID", "Modality"), flatten = FALSE, drop = TRUE)
     rbindlist(lapply(sList, function(i){
       modals <- names(i)
       
@@ -41,7 +43,10 @@ getStatData <- function(DT, outcome_vars){
                    CHigh = t.ml$conf.int[2])
       )
     }))
-  }))
+  }
+  
+  
+  rbindlist(lapply(outcomes, statSummary))
   
 }
 

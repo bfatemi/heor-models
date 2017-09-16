@@ -5,12 +5,14 @@
 \alias{getStatData}
 \title{Run Stats Across Groups}
 \usage{
-getStatData(DT, outcome_vars)
+getStatData(matchDT, outcomes, groupby)
 }
 \arguments{
-\item{DT}{Data that contains a column representing the outcome variables and contains columns CID and Modality for grouping}
+\item{matchDT}{Data that contains a column representing the outcome variables and contains columns CID and Modality for grouping}
 
-\item{outcome_vars}{[ARGUMENT DEFINITION NEEDED]}
+\item{outcomes}{[ARGUMENT DEFINITION NEEDED]}
+
+\item{groupby}{Column variables to group the data before running our desired statistics}
 }
 \description{
 Run Stats Across Groups

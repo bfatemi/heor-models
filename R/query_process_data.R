@@ -1,6 +1,7 @@
 #' Internal Data Query Function
 #'
-#' @param hospID [DESCRIPTION OF ARGUMENT NEEDED]
+#' @param hospID Internal hospital ID to get data for a specific customer
+#' @param verbose A boolean indicating whether to print information about the connection and query being executed
 #' @param cols columns to limit query to for minor efficiency gains
 #' 
 #' @param DT Data for processing after query function is run
@@ -17,7 +18,7 @@ NULL
 
 #' @describeIn query_data Returns raw data with minor filtering on the server for efficiency
 #' @export
-getDataQTI <- function(hospID = NULL, cols = "*"){
+getDataQTI <- function(hospID = NULL, cols = "*", verbose = TRUE){
   
   # GET CONNECTION PARAMETERS AND CREATE CONNECT OBJECT
   cnParams <- conn_params()
@@ -53,9 +54,11 @@ getDataQTI <- function(hospID = NULL, cols = "*"){
                   "\nFROM ", "[", db, "].[", cat, "].[", tbl, "]", 
                   WHERE)
   
-  # PRINT UPDATE ON CONSOLE FOR VALIDATION
-  cat(paste0("\n\nODBC String:\n\n", cnString, "\n\n"))
-  cat(paste0("\nRunning Query: \n\n", query, "\n\n"))
+  if(verbose){
+    # PRINT UPDATE ON CONSOLE FOR VALIDATION
+    cat(paste0("\n\nODBC String:\n\n", cnString, "\n\n"))
+    cat(paste0("\nRunning Query: \n\n", query, "\n\n"))    
+  }
 
   # RUN QUERY AND SET RESULTS AS DATATABLE
   resDT <- tryCatch({
@@ -157,7 +160,7 @@ split_check_hosp <- function(DT, modal_A = "Open", modal_B = "Robotic"){
   dropHosp <- names(which(!validBools))
   
   if(length(dropHosp) > 0)
-    warning("Not enough data for both modalities for hospitals: ", paste0(dropHosp, collapse = ", "))
+    warning("Not enough data for both modalities for hospitals: ", paste0(dropHosp, collapse = ", "), call. = FALSE)
   
   return(hospList[ which(validBools) ])
 }

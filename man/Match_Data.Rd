@@ -5,17 +5,17 @@
 \alias{getMatchedData}
 \title{Match Data Using PSM}
 \usage{
-getMatchedData(DT = NULL, strat_vars = NULL, covariates = NULL,
-  outcome_vars = NULL)
+getMatchedData(hospDT = NULL, stratby = NULL, covars = NULL,
+  outcomes = NULL, match_var = "Modality")
 }
 \arguments{
-\item{DT}{[ARGUMENT DEFINITION NEEDED]}
+\item{hospDT}{[ARGUMENT DEFINITION NEEDED]}
 
-\item{strat_vars}{VARS TO STRATIFY THE DATA BY (PER REQUIREMENTS)}
+\item{stratby}{VARS TO STRATIFY THE DATA BY (PER REQUIREMENTS)}
+
+\item{outcomes}{[ARGUMENT DEFINITION NEEDED]}
 
 \item{covariates}{[ARGUMENT DEFINITION NEEDED]}
-
-\item{outcome_vars}{[ARGUMENT DEFINITION NEEDED]}
 }
 \description{
 Match Data Using PSM

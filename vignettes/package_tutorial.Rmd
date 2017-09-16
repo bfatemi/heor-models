@@ -1,0 +1,48 @@
+---
+title: "Untitled"
+author: "Bobby Fatemi"
+date: "September 15, 2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Intuitive Surgical Data Science
+
+The R package ISDS provides the functionality to execute a PSM analysis across cohorts of patient modalities. Additionally, once cohorts of patients are matched across modalities, this package runs basic statistics to analyze the difference in various outcomes across groups.
+
+There are a number of functions available, however, the entire workflow can be run in 1 line of R code. This vignette aims to guide the user through the available analysis functions. 
+
+Current on-going efforts have integrated these analytics into Intuitive Surgical's data pipelines; however, these functionalities can be used by any employee at ISI that has been granted access. 
+
+*Note*: If you would like access to utilize these functions, please reach out to the package author: 
+
+Bobby Fatemi
+Data Scientist
+Bobby.Fatemi@intusurg.com
+
+
+## Install Package
+
+```{r install, eval=FALSE}
+
+library(devtools)
+install_github("bfatemi/isds")
+
+```
+
+## Run Entire PSM Workflow
+
+As mentioned, if the user desires to execute the entire the workflow without needing fine-grain control, this can be accomplished in 1 line:
+
+```{r runPSM, eval=TRUE}
+
+library(isds)
+resultDT <- runPSM()
+
+```
+
+
+

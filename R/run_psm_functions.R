@@ -4,10 +4,11 @@
 #' an interactive execution of this PSM analysis
 #'
 #' @param hospID A numeric variable representing the hospital id
-#' 
+#' @param verbose A boolean indicating whether to print information about the connection and query being executed
+#' @param wide A boolean indicating whether the data should be tranformed (default is TRUE per requirements)
 #' @param hospDT Hospital data
 #' @param idcols Columns to keep as IDs
-#' @param strat Columns to stratify the hospital data before PSM
+#' @param stratby Columns to stratify the hospital data before PSM
 #' @param covars Covariates to use to calculate the propensity score to match on
 #' @param outcomes Outcome column variables to run statistics for across groups matched with PSM
 #' 
@@ -31,29 +32,37 @@ caller_env <- function (n = 1) parent.frame(n + 1)
 
 #' @describeIn PSM_Functions Execute entire workflow
 #' @export
-runPSM <- function(hospID = NULL){
+runPSM <- function(hospID = NULL, verbose = TRUE, wide = TRUE){
 
-  # QUERY AND CLEAN DATA
-  idcols   <- c("HospitalID", "HospitalName", "PatientIDDeidentified", "Modality")
-  strat    <- c("ProcedurePrimary", "BenignMalignant", "InpatientOutpatient")
-  covars   <- c("PatientBMI", "PatientAge", "PatientCharlsonScore", "PatientGender")
-  outcomes <- c("LOSDays", "ORTimeMins")
-  
-  DT <- getDataQTI(hospID, c(idcols, strat, covars, outcomes))
-  
-  # SPLIT AND DROP HOSPITALS WITH FEWER THAN 10 CASES FOR EACH MODAL
-  psmInput <- split_check_hosp(DT, modal_A = "Open", modal_B = "Robotic")
   
   # EXEC ANALYSIS FOR EACH HOSPITAL
-  psmDataList <- lapply(psmInput, run_match_stats, idcols, strat, covars, outcomes)
+  idcols    <- c("HospitalID", "HospitalName", "PatientIDDeidentified")
+  stratby   <- c("ProcedurePrimary", "BenignMalignant", "InpatientOutpatient")
+  covars    <- c("PatientBMI", "PatientAge", "PatientCharlsonScore", "PatientGender")
+  outcomes  <- c("LOSDays", "ORTimeMins")
+  match_var <- c("Modality")
+  
+  DT <- getDataQTI(hospID  = hospID, 
+                   cols    = c(idcols, stratby, covars, outcomes, match_var),
+                   verbose = verbose)
+  
+  # SPLIT AND DROP HOSPITALS WITH FEWER THAN 10 CASES FOR EACH MODAL
+  psmInput <- split_check_hosp(DT = DT, 
+                               modal_A = "Open", 
+                               modal_B = "Robotic")
+
+  new_ids <- c("HospitalID", "PatientID")
+  psmResLL <- lapply(psmInput, function(i) run_match_stats(i, new_ids, stratby, covars, outcomes, match_var))
   
   # BIND ALL HOSP RESULTS TOGETHER AND JOIN TO BRING IN HOSP NAME
-  nDT    <- rbindlist(psmDataList)
+  nDT    <- rbindlist(psmResLL)
   htable <- DT[, .N, c("HospitalID", "HospitalName")][, !"N"]
   outDT  <- htable[nDT, on = "HospitalID"]
   
   # TRANSFORM DATA PER REQUIREMENTS (NOT OPTIMAL FOR FURTHER ANALYSIS OR VISUALIZATION)
-  return( transformResult(outDT) )
+  if(wide)
+    return( transformResult(outDT) )
+  return( outDT )
   
 }
 
@@ -63,9 +72,8 @@ runPSM <- function(hospID = NULL){
 #'   the matching (using internal function \code{getMatchedData}), then runs statistics across matched 
 #'   groups (using internal function \code{getStats})
 #' @export
-run_match_stats <- function(hospDT, idcols, strat, covars, outcomes){
-  
-  # update oucomes as some may be all NAs
+run_match_stats <- function(hospDT, idcols, stratby, covars, outcomes, match_var){
+
   outcomes <- names( which(apply( hospDT[, outcomes, with=FALSE], 2, function(col) sum(!is.na(col)) > 0 )) )
   
   if(length(outcomes) == 0){
@@ -73,22 +81,24 @@ run_match_stats <- function(hospDT, idcols, strat, covars, outcomes){
     return(NULL)
   }
   
-  mDT <- getMatchedData(DT = hospDT, 
-                        strat_vars = strat, 
-                        covariates = covars, 
-                        outcome_vars = outcomes)
+  matchDT <- getMatchedData(hospDT    = hospDT, 
+                            stratby   = stratby, 
+                            covars    = covars, 
+                            outcomes  = outcomes, 
+                            match_var = match_var)
   
-  res <- getStatData(DT = mDT, outcome_vars = outcomes)
+  statDT <- getStatData(matchDT  = matchDT, 
+                        outcomes = outcomes,
+                        groupby  = c("CID", match_var))
   
-  grpCols <- c("CID", "Modality", "HospitalID", "ProcedurePrimary", "BenignMalignant","InpatientOutpatient")
-  dtab <- mDT[, list(PSMCount = .N), grpCols]
+  grpCols <- c("CID", "HospitalID", match_var, stratby)
+  dtab <- matchDT[, list(PSMCount = .N), grpCols]
   
+  keyCols <- c("CID", "PSMCount", match_var)
+  setkeyv(dtab,   keyCols)
+  setkeyv(statDT, keyCols)
   
-  keyCols <- c("CID", "PSMCount", "Modality")
-  setkeyv(dtab, keyCols)
-  setkeyv(res,  keyCols)
-  
-  return(res[dtab])
+  return(statDT[dtab])
 }
 
 
