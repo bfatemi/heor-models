@@ -126,12 +126,12 @@ getRawData <- function(){
     stopifnot(odbcQuery(cnObject, query, rows_at_time = 1000) == 1)
     
     as.data.table(sqlGetResults(channel = cnObject, 
-                                                   as.is = TRUE,
-                                                   errors = TRUE,
-                                                   stringsAsFactors = FALSE,
-                                                   max = 0,
-                                                   buffsize = 500000,
-                                                   believeNRows = FALSE))
+                                as.is = TRUE,
+                                errors = TRUE,
+                                stringsAsFactors = FALSE,
+                                max = 0,
+                                buffsize = 500000,
+                                believeNRows = FALSE))
     
   }, error = function(c){
     stop("query failed in getRawData", call. = FALSE)
