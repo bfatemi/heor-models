@@ -12,9 +12,10 @@ NULL
 
 #' @describeIn conn_functions Internal function that builds the connection string using 
 build_conn_string <- function(cnList){
-  cnString <- str_c(names(cnList$cn_args), "=", cnList$cn_args, collapse = ";")
+  cnString <- stringr::str_c(names(cnList$cn_args), "=", cnList$cn_args, collapse = ";")
   return(cnString)
 }
+
 
 #' @describeIn conn_functions Internal function that decrypts and returns the connection params
 conn_params <- function(){
